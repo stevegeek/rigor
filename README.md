@@ -1,5 +1,7 @@
 # Rigor, Vouch, Origin
 
+[![Rigor R1 (surface), vouch neutral — see RIGOR.md](rigor-badge.svg)](RIGOR.md)
+
 A disclosure convention for source code in the AI era. It lets a repository state three
 separate things a reader actually wants to know, in a small machine-checkable file at the repo
 root ([`RIGOR.md`](RIGOR.md)):
