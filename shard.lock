@@ -1,0 +1,14 @@
+version: 2.0
+shards:
+  hana:
+    git: https://github.com/cyangle/hana.cr.git
+    version: 0.1.1
+
+  json_schemer:
+    git: https://github.com/cyangle/json_schemer.cr.git
+    version: 0.11.0
+
+  simpleidn:
+    git: https://github.com/cyangle/simpleidn.cr.git
+    version: 0.8.0
+

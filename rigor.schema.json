@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/rigor.schema.json",
+  "title": "Rigor, Vouch, Origin disclosure",
+  "description": "Structural and vocabulary validation for the RIGOR.md frontmatter block. Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rigor", "vouch"],
+  "properties": {
+    "rigor": {
+      "description": "Human review/ownership level for the most recent significant changes. Accepts the code (R0-R4) or the name (none, surface, comprehended, engineered, owned); tools normalize to the code. The combined 'R3 engineered' form is also accepted by the reference validators but not listed here; prefer one or the other in files.",
+      "type": "string",
+      "enum": [
+        "R0", "R1", "R2", "R3", "R4",
+        "none", "surface", "comprehended", "engineered", "owned"
+      ]
+    },
+    "vouch": {
+      "description": "Whether the author recommends depending on this code.",
+      "type": "string",
+      "enum": ["yes", "neutral", "withheld"]
+    },
+    "checks": {
+      "description": "Optional. The individual assurance checks behind the rigor level. Any subset may be present.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comprehended": { "$ref": "#/$defs/checkValue" },
+        "quality_reviewed": { "$ref": "#/$defs/checkValue" },
+        "security_reviewed": { "$ref": "#/$defs/checkValue" },
+        "tested": { "$ref": "#/$defs/checkValue" },
+        "owned": { "$ref": "#/$defs/checkValue" }
+      }
+    },
+    "origin": {
+      "description": "Optional. The provenance trajectory: how the code was first authored and who maintains it now.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "authored": {
+          "type": "string",
+          "enum": ["human-crafted", "ai-assisted", "ai-generated"]
+        },
+        "maintenance": {
+          "type": "string",
+          "enum": ["human-led", "ai-led", "ai-auto"]
+        }
+      }
+    },
+    "notes": {
+      "description": "Optional short free-text. The prose body below the frontmatter is the usual place for notes; this field exists for tools that prefer it inline.",
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "checkValue": {
+      "description": "Three-state so 'not-applicable' is distinct from 'no'. Strings, not bare booleans, to avoid YAML coercion footguns.",
+      "type": "string",
+      "enum": ["yes", "no", "not-applicable"]
+    }
+  }
+}
