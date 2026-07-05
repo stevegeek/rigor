@@ -25,7 +25,7 @@ module Rigor
 
       if checks = doc["checks"]?.try(&.as_h?)
         done = Vocabulary::CHECK_KEYS.select { |k| checks[k]?.try(&.as_s) == "yes" }
-                                     .map { |k| k.tr("_", " ") }
+          .map { |k| k.tr("_", " ") }
         parts << "Surfaced checks: #{done.join(", ")}." unless done.empty?
       end
 

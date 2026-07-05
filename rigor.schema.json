@@ -51,9 +51,9 @@
   },
   "$defs": {
     "checkValue": {
-      "description": "Three-state so 'not-applicable' is distinct from 'no'. Strings, not bare booleans, to avoid YAML coercion footguns.",
+      "description": "Done-states carry the actor: yes (unstated), human, ai, human-with-ai. Plus no and not-applicable. Strings, not booleans, to avoid YAML coercion footguns.",
       "type": "string",
-      "enum": ["yes", "no", "not-applicable"]
+      "enum": ["yes", "human", "ai", "human-with-ai", "no", "not-applicable"]
     }
   }
 }

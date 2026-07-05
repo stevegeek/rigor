@@ -62,5 +62,18 @@ describe Rigor::Validator do
       Rigor::Validator.validate(text).warnings.join.should contain("ai-auto")
       Rigor::Validator.validate(text, strict: true).warnings.join.should contain("ai-auto")
     end
+
+    it "accepts actor values as done for review checks" do
+      text = "---\nrigor: engineered\nchecks:\n  comprehended: yes\n  quality_reviewed: ai\n  security_reviewed: human\n  tested: human-with-ai\nvouch: neutral\n---\n"
+      r = Rigor::Validator.validate(text)
+      r.valid.should be_true
+    end
+
+    it "does not let an AI comprehension cross the line" do
+      text = "---\nrigor: comprehended\nchecks:\n  comprehended: ai\nvouch: neutral\n---\n"
+      r = Rigor::Validator.validate(text)
+      r.valid.should be_false
+      r.errors.join.should contain("comprehended")
+    end
   end
 end

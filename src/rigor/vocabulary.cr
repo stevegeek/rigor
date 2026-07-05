@@ -70,29 +70,33 @@ module Rigor
     }
 
     CHECK_KEYS   = %w[comprehended quality_reviewed security_reviewed tested owned]
-    CHECK_VALUES = %w[yes no not-applicable]
+    ACTORS       = %w[human human-with-ai ai]
+    CHECK_DONE   = %w[yes human ai human-with-ai]
+    CHECK_VALUES = %w[yes human ai human-with-ai no not-applicable]
     VOUCH_VALUES = %w[yes neutral withheld]
     AUTHORED     = %w[human-crafted ai-assisted ai-generated]
     MAINTENANCE  = %w[human-led ai-led ai-auto]
 
     # Checks each level implies, keyed by canonical name. `tested` accepts
     # not-applicable because the spec's own engineered example relies on it.
+    # comprehended's acceptable set excludes `ai` alone because an AI
+    # comprehending code does not put a human above the comprehension line.
     LEVEL_REQUIRES = {
       "unexamined"   => {} of String => Array(String),
       "skimmed"      => {} of String => Array(String),
-      "comprehended" => {"comprehended" => %w[yes]},
+      "comprehended" => {"comprehended" => %w[yes human human-with-ai]},
       "engineered"   => {
-        "comprehended"      => %w[yes],
-        "quality_reviewed"  => %w[yes],
-        "security_reviewed" => %w[yes],
-        "tested"            => %w[yes not-applicable],
+        "comprehended"      => %w[yes human human-with-ai],
+        "quality_reviewed"  => CHECK_DONE,
+        "security_reviewed" => CHECK_DONE,
+        "tested"            => CHECK_DONE + %w[not-applicable],
       },
       "owned" => {
-        "comprehended"      => %w[yes],
-        "quality_reviewed"  => %w[yes],
-        "security_reviewed" => %w[yes],
-        "tested"            => %w[yes not-applicable],
-        "owned"             => %w[yes],
+        "comprehended"      => %w[yes human human-with-ai],
+        "quality_reviewed"  => CHECK_DONE,
+        "security_reviewed" => CHECK_DONE,
+        "tested"            => CHECK_DONE + %w[not-applicable],
+        "owned"             => CHECK_DONE,
       },
     }
   end
