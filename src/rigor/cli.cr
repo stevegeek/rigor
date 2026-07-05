@@ -5,6 +5,7 @@ require "./commands/embed"
 require "./commands/serve"
 require "./commands/init"
 require "./commands/schema"
+require "./commands/fmt"
 
 module Rigor::CLI
   extend self
@@ -21,6 +22,7 @@ module Rigor::CLI
       embed     Emit README markdown snippets
       serve     Run the badge HTTP service
       schema    Print the embedded JSON Schema
+      fmt       Regenerate the summary from the stamp (--migrate converts v0.1)
     USAGE
 
   def run(argv : Array(String), io : IO = STDOUT) : Int32
@@ -98,6 +100,18 @@ module Rigor::CLI
       Commands::Serve.run(port, base, bind, io)
     when "schema"
       Commands::Schema.run(io)
+    when "fmt"
+      migrate = false
+      files = [] of String
+      OptionParser.parse(rest) do |p|
+        p.on("--migrate", "Convert a v0.1 frontmatter file to the v0.2 layout") { migrate = true }
+        p.unknown_args { |args| files = args }
+      end
+      if files.empty?
+        io.puts "usage: rigor fmt <file> [--migrate]"
+        return 2
+      end
+      Commands::Fmt.run(files.first, migrate, io)
     when "-h", "--help", "help"
       io.puts BANNER
       0
