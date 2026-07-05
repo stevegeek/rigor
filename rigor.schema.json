@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/rigor.schema.json",
-  "title": "Rigor, Vouch, Origin disclosure",
-  "description": "Structural and vocabulary validation for the RIGOR.md frontmatter block. Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
+  "title": "Rigor, Vouch, Stages disclosure",
+  "description": "Structural and vocabulary validation for the RIGOR.md stamp block (the fenced yaml under a trailing '## Stamp' heading, or legacy '---' frontmatter). Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": ["rigor", "vouch"],

@@ -10,6 +10,7 @@ module Rigor
     PARAM_ORDER = %w[
       rigor vouch
       idea_by idea_depth plan_by plan_depth implementation_by maintenance_by
+      assessed
       comprehended quality_reviewed security_reviewed tested owned
     ]
 
@@ -24,6 +25,7 @@ module Rigor
           p["#{k}_depth"] = st["depth"].as_s if st.has_key?("depth")
         end
       end
+      p["assessed"] = doc["assessed"].as_s if doc["assessed"]?
       if checks = doc["checks"]?.try(&.as_h?)
         Vocabulary::CHECK_KEYS.each do |k|
           p[k] = checks[k].as_s if checks.has_key?(k)

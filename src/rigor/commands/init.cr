@@ -2,6 +2,7 @@ require "json"
 require "../vocabulary"
 require "../summary"
 require "../stamp_yaml"
+require "../validator"
 
 module Rigor::Commands::Init
   extend self
@@ -29,6 +30,17 @@ module Rigor::Commands::Init
     end
     obj["assessed"] = JSON::Any.new(assessed) if assessed
     doc = JSON::Any.new(obj)
+
+    errors = Rigor::Validator.structural(doc)
+    if errors.empty?
+      sem_errors, _ = Rigor::Validator.semantic(doc, strict: false)
+      errors = sem_errors
+    end
+    unless errors.empty?
+      io.puts "error: refusing to write an invalid stamp:"
+      errors.each { |e| io.puts "  #{e}" }
+      return 1
+    end
 
     File.write(path, <<-MD)
     # About this code

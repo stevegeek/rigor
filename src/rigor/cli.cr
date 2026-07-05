@@ -11,7 +11,7 @@ module Rigor::CLI
   extend self
 
   BANNER = <<-USAGE
-    rigor - Rigor/Vouch/Origin disclosure tool
+    rigor - Rigor/Vouch/Stages disclosure tool
 
     Usage: rigor <command> [options]
 

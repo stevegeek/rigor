@@ -21,4 +21,9 @@ describe Rigor::Embed do
     md.should contain("https://example.dev/badge.svg?")
     md.should contain("](https://example.dev/r?")
   end
+
+  it "carries assessed into the badge URL so the served badge and embed alt text agree" do
+    q = Rigor::Embed.canonical_query(Rigor::Embed.params_from(doc_for("spec/fixtures/engineered_v2.md")))
+    q.should contain("assessed=2026-07")
+  end
 end

@@ -96,5 +96,10 @@ describe Rigor::Renderer do
       res = Rigor::Renderer.decode_params({"rigor" => "R9", "vouch" => "yes"})
       res.valid.should be_false
     end
+
+    it "carries assessed through so the described page matches the embed alt text" do
+      res = Rigor::Renderer.decode_params({"rigor" => "comprehended", "vouch" => "neutral", "assessed" => "2026-07"})
+      Rigor::Renderer.describe(res.doc.not_nil!).should contain("This assessment is as of 2026-07.")
+    end
   end
 end

@@ -30,4 +30,16 @@ describe Rigor::Commands::Fmt do
     Rigor::Validator.validate(text).valid.should be_true
     File.delete(path)
   end
+
+  it "migrates a v0.1 file but flags it when it is not valid under v0.2 rules" do
+    path = File.tempname("legacy_invalid", ".md")
+    File.write(path, "---\nrigor: R3\nchecks:\n  security_reviewed: yes\nvouch: neutral\n---\n# body\n")
+    io = IO::Memory.new
+    Rigor::Commands::Fmt.run(path, true, io).should eq(1)
+    text = File.read(path)
+    text.should contain("## Stamp")
+    text.should contain("rigor: engineered")
+    io.to_s.should contain("show your working")
+    File.delete(path)
+  end
 end

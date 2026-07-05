@@ -51,6 +51,16 @@ module Rigor::Commands::Fmt
       end
 
     File.write(path, new_text)
+
+    if legacy
+      sem_errors, _ = Rigor::Validator.semantic(d, strict: false)
+      unless sem_errors.empty?
+        sem_errors.each { |e| io.puts "  warning: migrated stamp is not valid under v0.2 rules — #{e}" }
+        io.puts "wrote #{path} (stamp needs attention: #{sem_errors.size} errors)"
+        return 1
+      end
+    end
+
     io.puts "wrote #{path}"
     0
   end

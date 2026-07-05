@@ -129,6 +129,8 @@ module Rigor
       end
       obj["stages"] = JSON::Any.new(stages) unless stages.empty?
 
+      obj["assessed"] = JSON::Any.new(params["assessed"]) if params.has_key?("assessed")
+
       checks = {} of String => JSON::Any
       Vocabulary::CHECK_KEYS.each do |k|
         checks[k] = JSON::Any.new(params[k]) if params.has_key?(k)
