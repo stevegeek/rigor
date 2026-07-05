@@ -2,6 +2,7 @@ require "./rigor/vocabulary"
 require "./rigor/document"
 require "./rigor/validator"
 require "./rigor/renderer"
+require "./rigor/summary"
 require "./rigor/cli"
 
 module Rigor

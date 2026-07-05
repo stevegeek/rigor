@@ -7,27 +7,27 @@ end
 
 describe Rigor::Renderer do
   describe ".describe" do
-    it "labels the level as the author's claim" do
+    it "states the author's claimed level as a first-person sentence" do
       Rigor::Renderer.describe(doc_for("spec/fixtures/full_r3.md"))
-        .should contain("author's claimed level")
+        .should contain("I understand this code; it was deliberately reviewed for quality and for security")
     end
 
     it "does not assert 'tested' when tested is not-applicable" do
       text = Rigor::Renderer.describe(doc_for("spec/fixtures/full_r3.md"))
       # tested is not-applicable in this fixture; it must not appear as a done check
-      text.should_not match(/surfaced checks:[^.]*tested/i)
+      text.should_not contain("tested")
     end
 
     it "lists only surfaced yes-checks" do
       text = Rigor::Renderer.describe(doc_for("spec/fixtures/r4_partial.md"))
-      text.should contain("security reviewed")
+      text.should contain("reviewed for security")
       text.should_not contain("comprehended")
     end
 
     it "states the vouch and stage story" do
       text = Rigor::Renderer.describe(doc_for("spec/fixtures/full_r3.md"))
-      text.should contain("Vouch: yes")
-      text.should contain("Stages — Idea: me, worked in depth; Implementation: me + AI; Maintenance: me.")
+      text.should contain("I recommend this for use; I put my name behind it.")
+      text.should contain("A human drives changes today.")
     end
   end
 

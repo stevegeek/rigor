@@ -2,6 +2,7 @@ require "json"
 require "./validator"
 require "./document"
 require "./vocabulary"
+require "./summary"
 
 module Rigor
   module Renderer
@@ -20,31 +21,7 @@ module Rigor
     end
 
     def describe(doc : JSON::Any) : String
-      r = doc["rigor"].as_s
-      parts = ["Rigor: #{r} — author's claimed level (#{level_def(r)})."]
-
-      if checks = doc["checks"]?.try(&.as_h?)
-        done = Vocabulary::CHECK_KEYS.select { |k| checks[k]?.try(&.as_s) == "yes" }
-          .map { |k| k.tr("_", " ") }
-        parts << "Surfaced checks: #{done.join(", ")}." unless done.empty?
-      end
-
-      parts << "Vouch: #{doc["vouch"].as_s}."
-
-      if stages = doc["stages"]?.try(&.as_h?)
-        bits = [] of String
-        Vocabulary::STAGE_KEYS.each do |k|
-          next unless st = stages[k]?.try(&.as_h?)
-          by = st["by"]?.try(&.as_s)
-          depth = st["depth"]?.try(&.as_s)
-          desc = [by ? Vocabulary::BY_SHORT[by]? || by : nil,
-                  depth ? Vocabulary::DEPTH_SHORT[depth]? || depth : nil].compact.join(", ")
-          bits << "#{Vocabulary::STAGE_LABEL[k]}: #{desc}" unless desc.empty?
-        end
-        parts << "Stages — #{bits.join("; ")}." unless bits.empty?
-      end
-
-      parts.join(" ")
+      Summary.compose(doc)
     end
 
     def esc(s) : String
