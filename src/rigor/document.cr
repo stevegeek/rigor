@@ -15,6 +15,10 @@ module Rigor
     # 1 KB. Cap the frontmatter so a hostile file cannot force a huge parse.
     MAX_FRONTMATTER_BYTES = 64 * 1024
 
+    STAMP_HEADING = /^##\s+Stamp\s*$/
+    FENCE_OPEN    = /^```ya?ml\s*$/
+    FENCE_CLOSE   = /^```\s*$/
+
     # Normalize any accepted alias — v0.2 name, R-code, v0.1 name, or the
     # combined "R3 engineered" form — to the canonical v0.2 name. Unknown
     # values pass through so the schema reports them.
@@ -37,20 +41,73 @@ module Rigor
         Vocabulary::V01_NAMES[down]?
     end
 
-    def extract(text : String) : {JSON::Any?, String?}
+    # The v0.2 stamp: the fenced yaml block under the LAST "## Stamp" heading.
+    # Line-scanned, not regexed across the file, so pathological input cannot
+    # trigger catastrophic backtracking.
+    private def stamp_yaml(text : String) : String?
+      lines = text.split('\n')
+      heading = nil
+      lines.each_with_index { |l, i| heading = i if l =~ STAMP_HEADING }
+      return nil unless heading
+      open = nil
+      ((heading + 1)...lines.size).each do |i|
+        if lines[i] =~ FENCE_OPEN
+          open = i
+          break
+        end
+      end
+      return nil unless open
+      close = nil
+      ((open + 1)...lines.size).each do |i|
+        if lines[i] =~ FENCE_CLOSE
+          close = i
+          break
+        end
+      end
+      return nil unless close
+      lines[(open + 1)...close].join('\n')
+    end
+
+    def extract(text : String) : {JSON::Any?, String?, Bool}
+      if yaml = stamp_yaml(text)
+        doc, err = parse_stamp(yaml)
+        return {doc, err, false}
+      end
       m =
         begin
           FRONTMATTER.match(text)
         rescue Regex::Error
-          # Pathological input that trips the PCRE match limit is treated as
-          # "no frontmatter" rather than crashing the process.
           nil
         end
-      unless m
-        return {nil, "No frontmatter block found. Expected a '---' fenced YAML block at the top of the file."}
+      if m
+        doc, err = parse_stamp(m[1])
+        return {doc, err, true} if err
+        return {migrate_legacy(doc.not_nil!), nil, true}
       end
+      {nil, "No stamp found. Expected a '## Stamp' section with a fenced yaml block (v0.2), or legacy '---' frontmatter (v0.1).", false}
+    end
 
-      fm = m[1]
+    # v0.1 -> v0.2 in-memory migration: origin becomes stage actors. Level
+    # names were already normalized by coerce_top/normalize_rigor.
+    private def migrate_legacy(doc : JSON::Any) : JSON::Any
+      obj = doc.as_h.dup
+      if origin = obj.delete("origin").try(&.as_h?)
+        stages = obj["stages"]?.try(&.as_h?) || {} of String => JSON::Any
+        if a = origin["authored"]?.try(&.as_s)
+          stages["implementation"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::AUTHORED_TO_BY[a]? || a)})
+        end
+        if mnt = origin["maintenance"]?.try(&.as_s)
+          stages["maintenance"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::MAINTENANCE_TO_BY[mnt]? || mnt)})
+        end
+        obj["stages"] = JSON::Any.new(stages) unless stages.empty?
+      end
+      JSON::Any.new(obj)
+    end
+
+    # Renamed from the old `extract`: size cap -> alias check -> YAML.parse ->
+    # mapping check -> coerce_top, operating on a yaml string (either the
+    # v0.2 Stamp fence contents or the v0.1 frontmatter block).
+    private def parse_stamp(fm : String) : {JSON::Any?, String?}
       if fm.bytesize > MAX_FRONTMATTER_BYTES
         return {nil, "Frontmatter is too large (#{fm.bytesize} bytes; limit is #{MAX_FRONTMATTER_BYTES})."}
       end
@@ -104,6 +161,8 @@ module Rigor
             coerce_yes_no(v)
           when "checks"
             coerce_checks(v)
+          when "spec", "assessed"
+            JSON::Any.new(yaml_scalar_to_s(v))
           else
             to_json_any(v)
           end

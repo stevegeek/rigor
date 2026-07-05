@@ -51,6 +51,16 @@
     "notes": {
       "description": "Optional short free-text. The prose body below the frontmatter is the usual place for notes; this field exists for tools that prefer it inline.",
       "type": "string"
+    },
+    "spec": {
+      "description": "The spec version this stamp is written against.",
+      "type": "string",
+      "enum": ["0.2"]
+    },
+    "assessed": {
+      "description": "When the stamp was last brought up to date (YYYY-MM or YYYY-MM-DD).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
     }
   },
   "$defs": {

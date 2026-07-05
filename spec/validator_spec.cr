@@ -3,7 +3,7 @@ require "./spec_helper"
 describe Rigor::Validator do
   describe ".structural" do
     it "accepts a valid minimal document" do
-      doc, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal.md"))
+      doc, _, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal.md"))
       Rigor::Validator.structural(doc.not_nil!).should be_empty
     end
 
@@ -76,11 +76,15 @@ describe Rigor::Validator do
       r.errors.join.should contain("comprehended")
     end
 
-    it "accepts a stages block and rejects origin as unknown" do
+    it "accepts a stages block and rejects origin as unknown in a v0.2 stamp" do
       good = "---\nrigor: skimmed\nvouch: neutral\nstages:\n  idea: {by: human, depth: deep}\n  plan: {by: human-with-ai, depth: considered}\n  implementation: {by: ai}\n  maintenance: {by: none}\n---\n"
       Rigor::Validator.validate(good).valid.should be_true
 
-      bad = "---\nrigor: skimmed\nvouch: neutral\norigin:\n  authored: ai-generated\n---\n"
+      # Under legacy v0.1 frontmatter, origin is a migrated input alias (see
+      # document_spec's legacy test), so it can no longer be used to prove
+      # origin is rejected. A v0.2 Stamp block does NOT migrate: origin there
+      # is genuinely unknown to the schema.
+      bad = "# T\n\n## Stamp\n\n```yaml\nrigor: skimmed\nvouch: neutral\norigin:\n  authored: ai-generated\n```\n"
       Rigor::Validator.validate(bad).valid.should be_false
     end
 
@@ -92,6 +96,24 @@ describe Rigor::Validator do
     it "warns on unattended AI maintenance with high rigor" do
       text = "---\nrigor: owned\nvouch: yes\nchecks:\n  comprehended: yes\n  quality_reviewed: yes\n  security_reviewed: yes\n  tested: yes\n  owned: yes\nstages:\n  maintenance: {by: ai}\n---\n"
       Rigor::Validator.validate(text).warnings.join.should contain("unattended")
+    end
+
+    it "warns about legacy format and missing spec version" do
+      r = Rigor::Validator.validate(File.read("spec/fixtures/legacy_v01.md"))
+      r.valid.should be_true
+      r.warnings.join.should contain("v0.1")
+      r.warnings.join.should contain("spec version")
+    end
+
+    it "accepts the v0.2 fixtures without warnings about format" do
+      r = Rigor::Validator.validate(File.read("spec/fixtures/engineered_v2.md"))
+      r.valid.should be_true
+      r.warnings.join.should_not contain("v0.1")
+    end
+
+    it "rejects a malformed assessed date and an unknown spec version" do
+      Rigor::Validator.validate("---\nrigor: comprehended\nvouch: neutral\nassessed: July 2026\n---\n").valid.should be_false
+      Rigor::Validator.validate("---\nrigor: comprehended\nvouch: neutral\nspec: \"9.9\"\n---\n").valid.should be_false
     end
   end
 end

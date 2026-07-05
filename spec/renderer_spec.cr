@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def doc_for(path)
-  d, _ = Rigor::Document.extract(File.read(path))
+  d, _, _ = Rigor::Document.extract(File.read(path))
   d.not_nil!
 end
 

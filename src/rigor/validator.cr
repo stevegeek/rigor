@@ -63,7 +63,7 @@ module Rigor
     end
 
     def validate(text : String, strict : Bool = false) : Result
-      doc, fm_err = Document.extract(text)
+      doc, fm_err, legacy = Document.extract(text)
       if fm_err
         return Result.new(false, [fm_err], [] of String, nil)
       end
@@ -75,6 +75,12 @@ module Rigor
       end
 
       sem_errors, warnings = semantic(d, strict)
+      if legacy
+        warnings << "This is a v0.1 frontmatter stamp. Run `rigor fmt --migrate <file>` to convert it to the v0.2 layout."
+      end
+      unless d["spec"]?
+        warnings << "The stamp does not declare a spec version. Add `spec: \"0.2\"`."
+      end
       Result.new(sem_errors.empty?, sem_errors, warnings, d)
     end
   end
