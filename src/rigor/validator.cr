@@ -50,9 +50,10 @@ module Rigor
         end
       end
 
-      if origin = doc["origin"]?.try(&.as_h?)
-        if origin["maintenance"]?.try(&.as_s) == "ai-auto" && rigor.in?("engineered", "owned")
-          warnings << "origin.maintenance is 'ai-auto' but rigor is #{rigor}. " \
+      if stages = doc["stages"]?.try(&.as_h?)
+        if stages["maintenance"]?.try(&.as_h?).try(&.["by"]?).try(&.as_s) == "ai" &&
+           rigor.in?("engineered", "owned")
+          warnings << "stages.maintenance.by is 'ai' (unattended) but rigor is '#{rigor}'. " \
                       "Fully automated maintenance rarely sustains this level; " \
                       "confirm this reflects review of the most recent changes."
         end

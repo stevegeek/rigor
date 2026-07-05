@@ -29,18 +29,22 @@
         "owned": { "$ref": "#/$defs/checkValue" }
       }
     },
-    "origin": {
-      "description": "Optional. The provenance trajectory: how the code was first authored and who maintains it now.",
+    "stages": {
+      "description": "Optional. The story of the work: who did each stage, and how deliberately. Any subset of stages; any subset of fields within a stage.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "authored": {
-          "type": "string",
-          "enum": ["human-crafted", "ai-assisted", "ai-generated"]
+        "idea": { "$ref": "#/$defs/thoughtStage" },
+        "plan": { "$ref": "#/$defs/thoughtStage" },
+        "implementation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "by": { "enum": ["human", "human-with-ai", "ai"] } }
         },
         "maintenance": {
-          "type": "string",
-          "enum": ["human-led", "ai-led", "ai-auto"]
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "by": { "enum": ["human", "human-with-ai", "ai", "none"] } }
         }
       }
     },
@@ -54,6 +58,14 @@
       "description": "Done-states carry the actor: yes (unstated), human, ai, human-with-ai. Plus no and not-applicable. Strings, not booleans, to avoid YAML coercion footguns.",
       "type": "string",
       "enum": ["yes", "human", "ai", "human-with-ai", "no", "not-applicable"]
+    },
+    "thoughtStage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "by": { "enum": ["human", "human-with-ai", "ai"] },
+        "depth": { "enum": ["one-shot", "considered", "deep"] }
+      }
     }
   }
 }

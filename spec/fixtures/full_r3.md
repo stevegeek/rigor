@@ -7,8 +7,9 @@ checks:
   tested: not-applicable
   owned: yes
 vouch: yes
-origin:
-  authored: ai-assisted
-  maintenance: human-led
+stages:
+  idea: {by: human, depth: deep}
+  implementation: {by: human-with-ai}
+  maintenance: {by: human}
 ---
 # body

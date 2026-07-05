@@ -31,15 +31,17 @@ module Rigor
 
       parts << "Vouch: #{doc["vouch"].as_s}."
 
-      if origin = doc["origin"]?.try(&.as_h?)
+      if stages = doc["stages"]?.try(&.as_h?)
         bits = [] of String
-        if a = origin["authored"]?.try(&.as_s)
-          bits << (Vocabulary::AUTHORED_GLOSS[a]? || a)
+        Vocabulary::STAGE_KEYS.each do |k|
+          next unless st = stages[k]?.try(&.as_h?)
+          by = st["by"]?.try(&.as_s)
+          depth = st["depth"]?.try(&.as_s)
+          desc = [by ? Vocabulary::BY_SHORT[by]? || by : nil,
+                  depth ? Vocabulary::DEPTH_SHORT[depth]? || depth : nil].compact.join(", ")
+          bits << "#{Vocabulary::STAGE_LABEL[k]}: #{desc}" unless desc.empty?
         end
-        if mnt = origin["maintenance"]?.try(&.as_s)
-          bits << (Vocabulary::MAINTENANCE_GLOSS[mnt]? || mnt)
-        end
-        parts << "Origin: #{bits.join(", ")}." unless bits.empty?
+        parts << "Stages — #{bits.join("; ")}." unless bits.empty?
       end
 
       parts.join(" ")
@@ -87,17 +89,19 @@ module Rigor
       lines << {level_def(r).capitalize, 34, "normal", "#333"}
       lines << {"Vouch: #{v}", 56, "bold", vouch_color(v)}
       voff = 56
-      if origin = doc["origin"]?.try(&.as_h?)
+      if stages = doc["stages"]?.try(&.as_h?)
         bits = [] of String
-        if a = origin["authored"]?.try(&.as_s)
-          bits << (Vocabulary::AUTHORED_GLOSS[a]? || a)
+        Vocabulary::STAGE_KEYS.each do |k|
+          next unless st = stages[k]?.try(&.as_h?)
+          by = st["by"]?.try(&.as_s)
+          depth = st["depth"]?.try(&.as_s)
+          desc = [by ? Vocabulary::BY_SHORT[by]? || by : nil,
+                  depth ? Vocabulary::DEPTH_SHORT[depth]? || depth : nil].compact.join(", ")
+          bits << "#{Vocabulary::STAGE_LABEL[k]}: #{desc}" unless desc.empty?
         end
-        if mnt = origin["maintenance"]?.try(&.as_s)
-          bits << (Vocabulary::MAINTENANCE_GLOSS[mnt]? || mnt)
-        end
-        unless bits.empty?
+        bits.each do |bit|
           voff += 20
-          lines << {"Origin: #{bits.join(", ")}", voff, "normal", "#333"}
+          lines << {"#{bit}", voff, "normal", "#333"}
         end
       end
       height = voff + 22
@@ -120,10 +124,24 @@ module Rigor
       obj["rigor"] = JSON::Any.new(Document.normalize_rigor(params["rigor"])) if params.has_key?("rigor")
       obj["vouch"] = JSON::Any.new(params["vouch"]) if params.has_key?("vouch")
 
-      origin = {} of String => JSON::Any
-      origin["authored"] = JSON::Any.new(params["authored"]) if params.has_key?("authored")
-      origin["maintenance"] = JSON::Any.new(params["maintenance"]) if params.has_key?("maintenance")
-      obj["origin"] = JSON::Any.new(origin) unless origin.empty?
+      stages = {} of String => JSON::Any
+      {"idea" => %w[idea_by idea_depth], "plan" => %w[plan_by plan_depth],
+       "implementation" => %w[implementation_by], "maintenance" => %w[maintenance_by]}.each do |stage, keys|
+        st = {} of String => JSON::Any
+        keys.each do |pk|
+          field = pk.ends_with?("_depth") ? "depth" : "by"
+          st[field] = JSON::Any.new(params[pk]) if params.has_key?(pk)
+        end
+        stages[stage] = JSON::Any.new(st) unless st.empty?
+      end
+      # Legacy v0.1 badge URLs keep working.
+      if a = params["authored"]?
+        stages["implementation"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::AUTHORED_TO_BY[a]? || a)})
+      end
+      if m = params["maintenance"]?
+        stages["maintenance"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::MAINTENANCE_TO_BY[m]? || m)})
+      end
+      obj["stages"] = JSON::Any.new(stages) unless stages.empty?
 
       checks = {} of String => JSON::Any
       Vocabulary::CHECK_KEYS.each do |k|

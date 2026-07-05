@@ -24,10 +24,10 @@ describe Rigor::Renderer do
       text.should_not contain("comprehended")
     end
 
-    it "states the vouch and origin" do
+    it "states the vouch and stage story" do
       text = Rigor::Renderer.describe(doc_for("spec/fixtures/full_r3.md"))
       text.should contain("Vouch: yes")
-      text.should contain("first written with AI assistance")
+      text.should contain("Stages — Idea: me, worked in depth; Implementation: me + AI; Maintenance: me.")
     end
   end
 

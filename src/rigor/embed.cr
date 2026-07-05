@@ -8,7 +8,8 @@ module Rigor
     extend self
 
     PARAM_ORDER = %w[
-      rigor vouch authored maintenance
+      rigor vouch
+      idea_by idea_depth plan_by plan_depth implementation_by maintenance_by
       comprehended quality_reviewed security_reviewed tested owned
     ]
 
@@ -16,9 +17,12 @@ module Rigor
       p = {} of String => String
       p["rigor"] = doc["rigor"].as_s
       p["vouch"] = doc["vouch"].as_s
-      if origin = doc["origin"]?.try(&.as_h?)
-        p["authored"] = origin["authored"].as_s if origin.has_key?("authored")
-        p["maintenance"] = origin["maintenance"].as_s if origin.has_key?("maintenance")
+      if stages = doc["stages"]?.try(&.as_h?)
+        Vocabulary::STAGE_KEYS.each do |k|
+          next unless st = stages[k]?.try(&.as_h?)
+          p["#{k}_by"] = st["by"].as_s if st.has_key?("by")
+          p["#{k}_depth"] = st["depth"].as_s if st.has_key?("depth")
+        end
       end
       if checks = doc["checks"]?.try(&.as_h?)
         Vocabulary::CHECK_KEYS.each do |k|

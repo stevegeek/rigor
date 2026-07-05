@@ -57,25 +57,30 @@ module Rigor
       "yes" => "#15803d", "neutral" => "#6b7280", "withheld" => "#334155",
     }
 
-    AUTHORED_GLOSS = {
-      "human-crafted" => "first written by a human",
-      "ai-assisted"   => "first written with AI assistance",
-      "ai-generated"  => "first AI-generated",
+    STAGE_KEYS = %w[idea plan implementation maintenance]
+    DEPTHS     = %w[one-shot considered deep]
+
+    # v0.1 origin values map onto stage actors (legacy migration, Document).
+    # ai-led -> human-with-ai deliberately merges "human leads with AI help"
+    # and "AI leads with human oversight": the load-bearing bit is whether a
+    # human is in the loop at all.
+    AUTHORED_TO_BY = {
+      "human-crafted" => "human", "ai-assisted" => "human-with-ai", "ai-generated" => "ai",
+    }
+    MAINTENANCE_TO_BY = {
+      "human-led" => "human", "ai-led" => "human-with-ai", "ai-auto" => "ai",
     }
 
-    MAINTENANCE_GLOSS = {
-      "human-led" => "human-maintained",
-      "ai-led"    => "AI-maintained with human direction",
-      "ai-auto"   => "automatically maintained by an agent",
-    }
+    # Short display forms for the infobox stage story.
+    STAGE_LABEL = {"idea" => "Idea", "plan" => "Plan", "implementation" => "Implementation", "maintenance" => "Maintenance"}
+    BY_SHORT    = {"human" => "me", "human-with-ai" => "me + AI", "ai" => "AI", "none" => "no one"}
+    DEPTH_SHORT = {"one-shot" => "one-shot", "considered" => "thought through", "deep" => "worked in depth"}
 
     CHECK_KEYS   = %w[comprehended quality_reviewed security_reviewed tested owned]
     ACTORS       = %w[human human-with-ai ai]
     CHECK_DONE   = %w[yes human ai human-with-ai]
     CHECK_VALUES = %w[yes human ai human-with-ai no not-applicable]
     VOUCH_VALUES = %w[yes neutral withheld]
-    AUTHORED     = %w[human-crafted ai-assisted ai-generated]
-    MAINTENANCE  = %w[human-led ai-led ai-auto]
 
     # Checks each level implies, keyed by canonical name. `tested` accepts
     # not-applicable because the spec's own engineered example relies on it.

@@ -57,10 +57,10 @@ describe Rigor::Validator do
       Rigor::Validator.validate(text, strict: true).valid.should be_false
     end
 
-    it "warns on ai-auto maintenance with high rigor in BOTH modes" do
-      text = "---\nrigor: R4\nvouch: yes\norigin:\n  maintenance: ai-auto\n---\n"
-      Rigor::Validator.validate(text).warnings.join.should contain("ai-auto")
-      Rigor::Validator.validate(text, strict: true).warnings.join.should contain("ai-auto")
+    it "warns on unattended AI maintenance with high rigor in BOTH modes" do
+      text = "---\nrigor: R4\nvouch: yes\nstages:\n  maintenance: {by: ai}\n---\n"
+      Rigor::Validator.validate(text).warnings.join.should contain("unattended")
+      Rigor::Validator.validate(text, strict: true).warnings.join.should contain("unattended")
     end
 
     it "accepts actor values as done for review checks" do
@@ -74,6 +74,24 @@ describe Rigor::Validator do
       r = Rigor::Validator.validate(text)
       r.valid.should be_false
       r.errors.join.should contain("comprehended")
+    end
+
+    it "accepts a stages block and rejects origin as unknown" do
+      good = "---\nrigor: skimmed\nvouch: neutral\nstages:\n  idea: {by: human, depth: deep}\n  plan: {by: human-with-ai, depth: considered}\n  implementation: {by: ai}\n  maintenance: {by: none}\n---\n"
+      Rigor::Validator.validate(good).valid.should be_true
+
+      bad = "---\nrigor: skimmed\nvouch: neutral\norigin:\n  authored: ai-generated\n---\n"
+      Rigor::Validator.validate(bad).valid.should be_false
+    end
+
+    it "rejects depth on implementation and none outside maintenance" do
+      Rigor::Validator.validate("---\nrigor: skimmed\nvouch: neutral\nstages:\n  implementation: {by: ai, depth: deep}\n---\n").valid.should be_false
+      Rigor::Validator.validate("---\nrigor: skimmed\nvouch: neutral\nstages:\n  idea: {by: none}\n---\n").valid.should be_false
+    end
+
+    it "warns on unattended AI maintenance with high rigor" do
+      text = "---\nrigor: owned\nvouch: yes\nchecks:\n  comprehended: yes\n  quality_reviewed: yes\n  security_reviewed: yes\n  tested: yes\n  owned: yes\nstages:\n  maintenance: {by: ai}\n---\n"
+      Rigor::Validator.validate(text).warnings.join.should contain("unattended")
     end
   end
 end
