@@ -1,49 +1,57 @@
+require "json"
 require "../vocabulary"
+require "../summary"
+require "../stamp_yaml"
 
 module Rigor::Commands::Init
   extend self
 
-  def run(dir : String, rigor : String, vouch : String, authored : String?, maintenance : String?, force : Bool, io : IO) : Int32
+  def run(dir : String, rigor : String, vouch : String,
+          stages : Hash(String, Hash(String, String)), assessed : String?,
+          force : Bool, io : IO) : Int32
     path = File.join(dir, "RIGOR.md")
     if File.exists?(path) && !force
       io.puts "error: #{path} already exists (use --force to overwrite)"
       return 1
     end
 
-    origin_block =
-      if authored || maintenance
-        lines = ["origin:"]
-        lines << "  authored: #{authored}" if authored
-        lines << "  maintenance: #{maintenance}" if maintenance
-        lines.join("\n") + "\n"
-      else
-        <<-YAML
-        # origin:            # optional provenance trajectory
-        #   authored: ai-assisted        # human-crafted | ai-assisted | ai-generated
-        #   maintenance: human-led       # human-led | ai-led | ai-auto
-
-        YAML
+    obj = {} of String => JSON::Any
+    obj["spec"] = JSON::Any.new("0.2")
+    obj["rigor"] = JSON::Any.new(Rigor::Document.normalize_rigor(rigor))
+    obj["vouch"] = JSON::Any.new(vouch)
+    unless stages.empty?
+      st = {} of String => JSON::Any
+      Vocabulary::STAGE_KEYS.each do |k|
+        next unless fields = stages[k]?
+        st[k] = JSON::Any.new(fields.transform_values { |v| JSON::Any.new(v) })
       end
+      obj["stages"] = JSON::Any.new(st)
+    end
+    obj["assessed"] = JSON::Any.new(assessed) if assessed
+    doc = JSON::Any.new(obj)
 
     File.write(path, <<-MD)
-    ---
-    rigor: #{rigor}
-    vouch: #{vouch}
-    # checks:              # optional; surface any subset. security_reviewed is the one to show.
-    #   comprehended: yes
-    #   quality_reviewed: yes
-    #   security_reviewed: yes
-    #   tested: not-applicable
-    #   owned: yes
-    #{origin_block}---
+    # About this code
 
-    # Rigor, Vouch, Origin
-
-    One-line restatement for anyone reading this file directly.
+    #{Rigor::Summary.block(doc)}
 
     ## Notes
 
-    Why the level is what it is, what was and was not checked.
+    Why the level is what it is, what was and was not checked, and anything
+    the plain summary above cannot carry.
+
+    ## Stamp
+
+    ```yaml
+    #{Rigor::StampYAML.emit(doc)}```
+
+    <!--
+    checks: surface any subset under the stamp; done-values carry the actor.
+      comprehended: yes | no          (can a human explain every line?)
+      quality_reviewed / security_reviewed / tested: human | ai | human-with-ai | yes | no | not-applicable
+      owned: yes | no                 (architectural responsibility)
+    Run `rigor fmt RIGOR.md` after editing the stamp to refresh the summary.
+    -->
     MD
 
     io.puts "wrote #{path}"
