@@ -196,7 +196,11 @@ module Rigor
 
     private def yaml_scalar_to_s(v : YAML::Any) : String
       raw = v.raw
-      raw.is_a?(String) ? raw : raw.to_s
+      case raw
+      when String then raw
+      when Time   then raw.to_s("%Y-%m-%d")
+      else             raw.to_s
+      end
     end
 
     # Faithful YAML::Any -> JSON::Any for fields we do not special-case.

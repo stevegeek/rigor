@@ -115,5 +115,12 @@ describe Rigor::Document do
       _, err, _ = Rigor::Document.extract("just prose")
       err.not_nil!.should contain("Stamp")
     end
+
+    it "coerces an unquoted day-precision assessed date to YYYY-MM-DD" do
+      text = "---\nrigor: comprehended\nvouch: neutral\nassessed: 2026-07-15\n---\n"
+      doc, err, _ = Rigor::Document.extract(text)
+      err.should be_nil
+      doc.not_nil!["assessed"].as_s.should eq("2026-07-15")
+    end
   end
 end
