@@ -15,12 +15,26 @@ module Rigor
     # 1 KB. Cap the frontmatter so a hostile file cannot force a huge parse.
     MAX_FRONTMATTER_BYTES = 64 * 1024
 
+    # Normalize any accepted alias — v0.2 name, R-code, v0.1 name, or the
+    # combined "R3 engineered" form — to the canonical v0.2 name. Unknown
+    # values pass through so the schema reports them.
     def normalize_rigor(value : String) : String
       token = value.strip
-      return token if Vocabulary::LEVELS.includes?(token)
-      lead = token.split(/\s+/, 2).first
-      return lead if Vocabulary::LEVELS.includes?(lead)
-      Vocabulary::NAME_TO_CODE[token.downcase]? || value
+      resolved = resolve_level(token)
+      return resolved if resolved
+      token.split(/\s+/).each do |part|
+        if r = resolve_level(part)
+          return r
+        end
+      end
+      value
+    end
+
+    private def resolve_level(token : String) : String?
+      down = token.downcase
+      return down if Vocabulary::LEVELS.includes?(down)
+      Vocabulary::CODE_TO_NAME[token]? || Vocabulary::CODE_TO_NAME[token.upcase]? ||
+        Vocabulary::V01_NAMES[down]?
     end
 
     def extract(text : String) : {JSON::Any?, String?}

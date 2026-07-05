@@ -7,15 +7,8 @@ module Rigor
   module Renderer
     extend self
 
-    # The schema permits bare level names, so a value reaching the renderer
-    # without prior normalization would miss the code-keyed lookups. Both entry
-    # points normalize, but guard anyway rather than risk a KeyError.
-    private def level_name(r) : String
-      Vocabulary::LEVEL_NAMES[r]? || r
-    end
-
     private def level_def(r) : String
-      Vocabulary::LEVEL_DEFINITION[r]? || ""
+      Vocabulary::LEVEL_GLOSS[r]? || ""
     end
 
     private def level_color(r) : String
@@ -28,7 +21,7 @@ module Rigor
 
     def describe(doc : JSON::Any) : String
       r = doc["rigor"].as_s
-      parts = ["Rigor #{r} (#{level_name(r)}) — author's claimed level (#{level_def(r)})."]
+      parts = ["Rigor: #{r} — author's claimed level (#{level_def(r)})."]
 
       if checks = doc["checks"]?.try(&.as_h?)
         done = Vocabulary::CHECK_KEYS.select { |k| checks[k]?.try(&.as_s) == "yes" }
@@ -64,7 +57,7 @@ module Rigor
     def badge(doc : JSON::Any) : String
       r = doc["rigor"].as_s
       v = doc["vouch"].as_s
-      left = "rigor #{level_name(r)}"
+      left = "rigor #{r}"
       right = "vouch #{v}"
       lw = w(left) + 16
       rw = w(right) + 16
@@ -90,7 +83,7 @@ module Rigor
       width = 340
       desc = describe(doc)
       lines = [] of Tuple(String, Int32, String, String)
-      lines << {"Rigor #{r}: #{level_name(r).capitalize}", 16, "bold", "#111"}
+      lines << {"Rigor: #{r.capitalize}", 16, "bold", "#111"}
       lines << {level_def(r).capitalize, 34, "normal", "#333"}
       lines << {"Vouch: #{v}", 56, "bold", vouch_color(v)}
       voff = 56

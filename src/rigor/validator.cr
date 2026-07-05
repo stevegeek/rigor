@@ -51,7 +51,7 @@ module Rigor
       end
 
       if origin = doc["origin"]?.try(&.as_h?)
-        if origin["maintenance"]?.try(&.as_s) == "ai-auto" && rigor.in?("R3", "R4")
+        if origin["maintenance"]?.try(&.as_s) == "ai-auto" && rigor.in?("engineered", "owned")
           warnings << "origin.maintenance is 'ai-auto' but rigor is #{rigor}. " \
                       "Fully automated maintenance rarely sustains this level; " \
                       "confirm this reflects review of the most recent changes."

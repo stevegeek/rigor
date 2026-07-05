@@ -1,11 +1,10 @@
 require "./spec_helper"
 
 describe "schema/vocabulary drift" do
-  it "vocabulary level codes are all present in the schema rigor enum" do
+  it "vocabulary level names are exactly the schema rigor enum" do
     schema = JSON.parse(Rigor::Validator::SCHEMA_JSON)
     enum_vals = schema["properties"]["rigor"]["enum"].as_a.map(&.as_s)
-    Rigor::Vocabulary::LEVELS.each { |code| enum_vals.should contain(code) }
-    Rigor::Vocabulary::LEVEL_NAMES.values.each { |name| enum_vals.should contain(name) }
+    enum_vals.sort.should eq(Rigor::Vocabulary::LEVELS.sort)
   end
 
   it "check values match" do

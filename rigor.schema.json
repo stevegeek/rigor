@@ -8,12 +8,9 @@
   "required": ["rigor", "vouch"],
   "properties": {
     "rigor": {
-      "description": "Human review/ownership level for the most recent significant changes. Accepts the code (R0-R4) or the name (none, surface, comprehended, engineered, owned); tools normalize to the code. The combined 'R3 engineered' form is also accepted by the reference validators but not listed here; prefer one or the other in files.",
+      "description": "Human review/ownership level for the most recent significant changes, as a v0.2 level name. Tools also accept the legacy codes (R0-R4) and v0.1 names (none, surface) as input and normalize them to these names before validation.",
       "type": "string",
-      "enum": [
-        "R0", "R1", "R2", "R3", "R4",
-        "none", "surface", "comprehended", "engineered", "owned"
-      ]
+      "enum": ["unexamined", "skimmed", "comprehended", "engineered", "owned"]
     },
     "vouch": {
       "description": "Whether the author recommends depending on this code.",

@@ -1,33 +1,60 @@
 module Rigor
   module Vocabulary
-    LEVELS = %w[R0 R1 R2 R3 R4]
+    # v0.2: names ARE the canonical encoding. Codes and v0.1 names are
+    # accepted as input aliases (Document.normalize_rigor) but never emitted.
+    LEVELS = %w[unexamined skimmed comprehended engineered owned]
 
-    LEVEL_NAMES = {
-      "R0" => "none", "R1" => "surface", "R2" => "comprehended",
+    CODE_TO_NAME = {
+      "R0" => "unexamined", "R1" => "skimmed", "R2" => "comprehended",
       "R3" => "engineered", "R4" => "owned",
     }
 
-    NAME_TO_CODE = LEVEL_NAMES.invert
+    # v0.1 names that were renamed in v0.2.
+    V01_NAMES = {"none" => "unexamined", "surface" => "skimmed"}
 
-    # Neutral one-line definitions of what a level *means*. These describe the
-    # claim, never assert that the work was done (that is what surfaced checks
-    # are for). Used by `describe` alongside "author's claimed level".
-    LEVEL_DEFINITION = {
-      "R0" => "accepted without review",
-      "R1" => "glanced at, not understood",
-      "R2" => "understood and explainable",
-      "R3" => "comprehended, quality- and security-reviewed, tested",
-      "R4" => "R3 plus architectural ownership",
+    # Everything at or above the comprehension line.
+    ABOVE_LINE = %w[comprehended engineered owned]
+
+    # The canonical first-person sentence for each claim. These are the spec's
+    # voice: summaries, badges' <desc>, and the /r page are composed from them.
+    LEVEL_SENTENCE = {
+      "unexamined"   => "I have not examined this code. It ran; that is all I claim.",
+      "skimmed"      => "I have run and skimmed this code, but I have not read it properly. No human has understood it line by line.",
+      "comprehended" => "I have read and understood this code; I can explain every line of it.",
+      "engineered"   => "I understand this code; it was deliberately reviewed for quality and for security, issues found were fixed, and it has tests I trust.",
+      "owned"        => "I stand behind this code as soundly engineered and hold architectural responsibility for it.",
     }
 
-    # Colors encode the R2 comprehension line: below it amber/red, R2+ green.
+    VOUCH_SENTENCE = {
+      "yes"      => "I recommend this for use; I put my name behind it.",
+      "neutral"  => "I make no recommendation either way about depending on it.",
+      "withheld" => "I am specifically not recommending you depend on this.",
+    }
+
+    # Short badge/infobox wording for vouch.
+    VOUCH_LABEL = {"yes" => "vouched", "neutral" => "no vouch", "withheld" => "vouch withheld"}
+
+    # Short gloss for the infobox (340px wide; sentences don't fit).
+    LEVEL_GLOSS = {
+      "unexamined"   => "not examined by a human",
+      "skimmed"      => "run and skimmed, not read",
+      "comprehended" => "understood line by line",
+      "engineered"   => "reviewed, security-checked, tested",
+      "owned"        => "engineered and owned",
+    }
+
+    # Below the comprehension line: neutral slate — an honest low stamp must
+    # not look like a warning sticker. At/above the line: blue, then greens.
     LEVEL_COLOR = {
-      "R0" => "#b91c1c", "R1" => "#c2410c", "R2" => "#15803d",
-      "R3" => "#166534", "R4" => "#14532d",
+      "unexamined"   => "#64748b",
+      "skimmed"      => "#64748b",
+      "comprehended" => "#0369a1",
+      "engineered"   => "#15803d",
+      "owned"        => "#14532d",
     }
 
     VOUCH_COLOR = {
-      "yes" => "#15803d", "neutral" => "#6b7280", "withheld" => "#b45309",
+      "yes" => "#15803d", "neutral" => "#6b7280", "withheld" => "#334155",
     }
 
     AUTHORED_GLOSS = {
@@ -48,19 +75,19 @@ module Rigor
     AUTHORED     = %w[human-crafted ai-assisted ai-generated]
     MAINTENANCE  = %w[human-led ai-led ai-auto]
 
-    # Checks each level implies. `tested` accepts not-applicable because the
-    # spec's own R3 example relies on it. Consistency is one-way (see validator).
+    # Checks each level implies, keyed by canonical name. `tested` accepts
+    # not-applicable because the spec's own engineered example relies on it.
     LEVEL_REQUIRES = {
-      "R0" => {} of String => Array(String),
-      "R1" => {} of String => Array(String),
-      "R2" => {"comprehended" => %w[yes]},
-      "R3" => {
+      "unexamined"   => {} of String => Array(String),
+      "skimmed"      => {} of String => Array(String),
+      "comprehended" => {"comprehended" => %w[yes]},
+      "engineered"   => {
         "comprehended"      => %w[yes],
         "quality_reviewed"  => %w[yes],
         "security_reviewed" => %w[yes],
         "tested"            => %w[yes not-applicable],
       },
-      "R4" => {
+      "owned" => {
         "comprehended"      => %w[yes],
         "quality_reviewed"  => %w[yes],
         "security_reviewed" => %w[yes],

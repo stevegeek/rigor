@@ -8,7 +8,7 @@ end
 describe Rigor::Embed do
   it "emits params in canonical order" do
     q = Rigor::Embed.canonical_query(Rigor::Embed.params_from(doc_for("spec/fixtures/full_r3.md")))
-    q.should start_with("rigor=R3&vouch=yes&authored=ai-assisted&maintenance=human-led")
+    q.should start_with("rigor=engineered&vouch=yes&authored=ai-assisted&maintenance=human-led")
   end
 
   it "alt text equals the renderer description" do

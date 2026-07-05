@@ -41,7 +41,7 @@ describe Rigor::Renderer do
       svg = Rigor::Renderer.badge(doc_for("spec/fixtures/full_r3.md"))
       svg.should contain("rigor engineered")
       svg.should contain("vouch yes")
-      svg.should contain(Rigor::Vocabulary::LEVEL_COLOR["R3"])
+      svg.should contain(Rigor::Vocabulary::LEVEL_COLOR["engineered"])
     end
 
     it "escapes angle brackets and quotes in the desc" do
@@ -71,7 +71,7 @@ describe Rigor::Renderer do
                                            "comprehended" => "yes", "quality_reviewed" => "yes",
                                            "security_reviewed" => "yes"})
       res.valid.should be_true
-      res.doc.not_nil!["rigor"].as_s.should eq("R3")
+      res.doc.not_nil!["rigor"].as_s.should eq("engineered")
     end
 
     it "reports invalid params" do

@@ -2,18 +2,23 @@ require "./spec_helper"
 
 describe Rigor::Document do
   describe ".normalize_rigor" do
-    it "passes canonical codes through" do
-      Rigor::Document.normalize_rigor("R3").should eq("R3")
+    it "passes canonical names through" do
+      Rigor::Document.normalize_rigor("engineered").should eq("engineered")
     end
-    it "maps a name to its code" do
-      Rigor::Document.normalize_rigor("engineered").should eq("R3")
+    it "maps a code to its name" do
+      Rigor::Document.normalize_rigor("R3").should eq("engineered")
+      Rigor::Document.normalize_rigor("R1").should eq("skimmed")
     end
-    it "takes the leading code from the combined form" do
-      Rigor::Document.normalize_rigor("R3 engineered").should eq("R3")
-      Rigor::Document.normalize_rigor("R3 Engineered").should eq("R3")
+    it "maps v0.1 names to v0.2 names" do
+      Rigor::Document.normalize_rigor("surface").should eq("skimmed")
+      Rigor::Document.normalize_rigor("none").should eq("unexamined")
+    end
+    it "takes the resolvable part of the combined form" do
+      Rigor::Document.normalize_rigor("R3 engineered").should eq("engineered")
+      Rigor::Document.normalize_rigor("R3 Engineered").should eq("engineered")
     end
     it "is case-insensitive on names and trims whitespace" do
-      Rigor::Document.normalize_rigor("  Owned ").should eq("R4")
+      Rigor::Document.normalize_rigor("  Owned ").should eq("owned")
     end
     it "passes unknown values through unchanged" do
       Rigor::Document.normalize_rigor("bogus").should eq("bogus")
@@ -32,7 +37,7 @@ describe Rigor::Document do
       doc, err = Rigor::Document.extract(text)
       err.should be_nil
       d = doc.not_nil!
-      d["rigor"].as_s.should eq("R3")
+      d["rigor"].as_s.should eq("engineered")
       d["checks"]["comprehended"].as_s.should eq("yes")
       d["checks"]["tested"].as_s.should eq("not-applicable")
       d["vouch"].as_s.should eq("yes")

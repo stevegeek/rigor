@@ -1,19 +1,24 @@
 require "./spec_helper"
 
 describe Rigor::Vocabulary do
-  it "has five levels R0..R4" do
-    Rigor::Vocabulary::LEVELS.should eq(%w[R0 R1 R2 R3 R4])
+  it "levels are the five v0.2 names, ordered" do
+    Rigor::Vocabulary::LEVELS.should eq(%w[unexamined skimmed comprehended engineered owned])
   end
 
-  it "maps names to codes and back consistently" do
-    Rigor::Vocabulary::LEVEL_NAMES.each do |code, name|
-      Rigor::Vocabulary::NAME_TO_CODE[name].should eq(code)
-    end
+  it "maps codes and v0.1 names to v0.2 names" do
+    Rigor::Vocabulary::CODE_TO_NAME["R1"].should eq("skimmed")
+    Rigor::Vocabulary::CODE_TO_NAME["R0"].should eq("unexamined")
+    Rigor::Vocabulary::V01_NAMES["surface"].should eq("skimmed")
+    Rigor::Vocabulary::V01_NAMES["none"].should eq("unexamined")
   end
 
-  it "requires comprehended at R2 and owned at R4" do
-    Rigor::Vocabulary::LEVEL_REQUIRES["R2"]["comprehended"].should eq(%w[yes])
-    Rigor::Vocabulary::LEVEL_REQUIRES["R4"]["owned"].should eq(%w[yes])
-    Rigor::Vocabulary::LEVEL_REQUIRES["R3"]["tested"].should eq(%w[yes not-applicable])
+  it "has a first-person sentence for every level and vouch value" do
+    Rigor::Vocabulary::LEVELS.each { |l| Rigor::Vocabulary::LEVEL_SENTENCE[l].should_not be_empty }
+    Rigor::Vocabulary::VOUCH_VALUES.each { |v| Rigor::Vocabulary::VOUCH_SENTENCE[v].should_not be_empty }
+  end
+
+  it "level requirements are keyed by name" do
+    Rigor::Vocabulary::LEVEL_REQUIRES["engineered"].keys.should contain("security_reviewed")
+    Rigor::Vocabulary::LEVEL_REQUIRES["skimmed"].should be_empty
   end
 end
