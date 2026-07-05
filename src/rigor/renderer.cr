@@ -36,15 +36,17 @@ module Rigor
     def badge(doc : JSON::Any) : String
       r = doc["rigor"].as_s
       v = doc["vouch"].as_s
-      left = "rigor #{r}"
-      right = "vouch #{v}"
+      left = r
+      left += " · AI-reviewed" if !Vocabulary::ABOVE_LINE.includes?(r) && ai_reviewed?(doc)
+      right = Vocabulary::VOUCH_LABEL[v]? || v
+      label = "#{left} | #{right}"
       lw = w(left) + 16
       rw = w(right) + 16
       total = lw + rw
       desc = describe(doc)
       <<-SVG
-      <svg xmlns="http://www.w3.org/2000/svg" width="#{total}" height="20" role="img" aria-label="#{esc(left)} #{esc(right)}">
-        <title>#{esc(left)} | #{esc(right)}</title>
+      <svg xmlns="http://www.w3.org/2000/svg" width="#{total}" height="20" role="img" aria-label="#{esc(label)}">
+        <title>#{esc(label)}</title>
         <desc>#{esc(desc)}</desc>
         <rect width="#{lw}" height="20" rx="3" fill="#{level_color(r)}"/>
         <rect x="#{lw}" width="#{rw}" height="20" fill="#{vouch_color(v)}"/>
@@ -56,6 +58,13 @@ module Rigor
       SVG
     end
 
+    # A below-the-line stamp whose review checks were AI-performed is a
+    # different claim from a raw skim; surface it at badge resolution.
+    private def ai_reviewed?(doc : JSON::Any) : Bool
+      checks = doc["checks"]?.try(&.as_h?) || return false
+      %w[quality_reviewed security_reviewed].any? { |k| checks[k]?.try(&.as_s) == "ai" }
+    end
+
     def infobox(doc : JSON::Any) : String
       r = doc["rigor"].as_s
       v = doc["vouch"].as_s
@@ -64,7 +73,7 @@ module Rigor
       lines = [] of Tuple(String, Int32, String, String)
       lines << {"Rigor: #{r.capitalize}", 16, "bold", "#111"}
       lines << {level_def(r).capitalize, 34, "normal", "#333"}
-      lines << {"Vouch: #{v}", 56, "bold", vouch_color(v)}
+      lines << {"Vouch: #{Vocabulary::VOUCH_LABEL[v]? || v}", 56, "bold", vouch_color(v)}
       voff = 56
       if stages = doc["stages"]?.try(&.as_h?)
         bits = [] of String

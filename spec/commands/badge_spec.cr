@@ -6,14 +6,16 @@ describe Rigor::Commands::Badge do
     code = Rigor::Commands::Badge.run("spec/fixtures/full_r3.md", nil, infobox: false, out_path: nil, io: io)
     code.should eq(0)
     io.to_s.should contain("<svg")
-    io.to_s.should contain("rigor engineered")
+    io.to_s.should contain(">engineered<")
+    io.to_s.should contain(">vouched<")
   end
 
   it "renders from --params" do
     io = IO::Memory.new
     code = Rigor::Commands::Badge.run(nil, "rigor=R2&vouch=neutral", infobox: false, out_path: nil, io: io)
     code.should eq(0)
-    io.to_s.should contain("rigor comprehended")
+    io.to_s.should contain(">comprehended<")
+    io.to_s.should contain(">no vouch<")
   end
 
   it "renders an invalid badge (exit 1) for bad params" do

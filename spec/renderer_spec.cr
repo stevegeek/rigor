@@ -38,15 +38,32 @@ describe Rigor::Renderer do
       Rigor::Renderer.badge(d).should eq(Rigor::Renderer.badge(d))
     end
 
-    it "contains the level name, vouch, and the level color" do
-      svg = Rigor::Renderer.badge(doc_for("spec/fixtures/full_r3.md"))
-      svg.should contain("rigor engineered")
-      svg.should contain("vouch yes")
-      svg.should contain(Rigor::Vocabulary::LEVEL_COLOR["engineered"])
-    end
-
     it "escapes angle brackets and quotes in the desc" do
       Rigor::Renderer.esc(%(a<b>"c&d)).should eq("a&lt;b&gt;&quot;c&amp;d")
+    end
+
+    it "renders plain-language badge text with matching title and aria-label" do
+      doc, _, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal_v2.md"))
+      svg = Rigor::Renderer.badge(doc.not_nil!)
+      svg.should contain(">comprehended<")
+      svg.should contain(">no vouch<")
+      svg.should contain(%(aria-label="comprehended | no vouch"))
+      svg.should contain("<title>comprehended | no vouch</title>")
+      svg.should contain("I make no recommendation")
+    end
+
+    it "qualifies a below-the-line badge when review was AI-only" do
+      text = "---\nrigor: skimmed\nvouch: neutral\nchecks:\n  security_reviewed: ai\n---\n"
+      doc, _, _ = Rigor::Document.extract(text)
+      Rigor::Renderer.badge(doc.not_nil!).should contain("skimmed · AI-reviewed")
+    end
+
+    it "uses neutral slate for honest low stamps, not warning amber" do
+      text = "---\nrigor: skimmed\nvouch: neutral\n---\n"
+      doc, _, _ = Rigor::Document.extract(text)
+      svg = Rigor::Renderer.badge(doc.not_nil!)
+      svg.should contain("#64748b")
+      svg.should_not contain("#c2410c")
     end
   end
 
@@ -54,7 +71,7 @@ describe Rigor::Renderer do
     it "includes the level definition and vouch" do
       svg = Rigor::Renderer.infobox(doc_for("spec/fixtures/minimal.md"))
       svg.should contain("Comprehended")
-      svg.should contain("Vouch: neutral")
+      svg.should contain("Vouch: no vouch")
     end
   end
 

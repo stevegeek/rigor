@@ -13,7 +13,8 @@ describe Rigor::Server do
       res.status_code.should eq(200)
       res.headers["Content-Type"].should eq("image/svg+xml")
       res.headers["Cache-Control"].should contain("max-age")
-      res.body.should contain("rigor comprehended")
+      res.body.should contain(">comprehended<")
+      res.body.should contain(">no vouch<")
 
       bad = HTTP::Client.get("http://#{address}/badge.svg?rigor=R9&vouch=yes")
       bad.status_code.should eq(400)
