@@ -19,7 +19,8 @@ describe Rigor::Renderer do
     end
 
     it "lists only surfaced yes-checks" do
-      text = Rigor::Renderer.describe(doc_for("spec/fixtures/r4_partial.md"))
+      doc = JSON.parse(%({"rigor":"owned","vouch":"yes","checks":{"security_reviewed":"yes"}}))
+      text = Rigor::Renderer.describe(doc)
       text.should contain("reviewed for security")
       text.should_not contain("comprehended")
     end
@@ -69,7 +70,7 @@ describe Rigor::Renderer do
     it "normalizes a rigor name in params and validates" do
       res = Rigor::Renderer.decode_params({"rigor" => "engineered", "vouch" => "yes",
                                            "comprehended" => "yes", "quality_reviewed" => "yes",
-                                           "security_reviewed" => "yes"})
+                                           "security_reviewed" => "yes", "tested" => "yes"})
       res.valid.should be_true
       res.doc.not_nil!["rigor"].as_s.should eq("engineered")
     end

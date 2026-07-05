@@ -1,10 +1,5 @@
 ---
-rigor: R4
-checks:
-  security_reviewed: yes
+rigor: comprehended
 vouch: yes
-stages:
-  implementation: {by: human-with-ai}
-  maintenance: {by: human}
 ---
 # body

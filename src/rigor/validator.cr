@@ -2,6 +2,7 @@ require "json"
 require "json_schemer"
 require "./document"
 require "./vocabulary"
+require "./summary"
 
 module Rigor
   module Validator
@@ -39,14 +40,20 @@ module Rigor
       checks = doc["checks"]?.try(&.as_h?) || {} of String => JSON::Any
       required = Vocabulary::LEVEL_REQUIRES[rigor]? || {} of String => Array(String)
 
+      # Above the comprehension line, a claim must show its working: the
+      # implied checks must be surfaced, not merely non-contradicting. At or
+      # below `comprehended`, terse stamps stay legal.
+      must_surface = rigor.in?("engineered", "owned")
       required.each do |name, acceptable|
         if checks.has_key?(name)
           got = checks[name].as_s
           unless acceptable.includes?(got)
-            errors << "rigor #{rigor} requires '#{name}' to be one of #{acceptable}, but it is '#{got}'."
+            errors << "rigor '#{rigor}' requires '#{name}' to be one of #{acceptable}, but it is '#{got}'."
           end
+        elsif must_surface
+          errors << "rigor '#{rigor}' claims '#{name}' but it is not surfaced — show your working (add '#{name}:' under checks:)."
         elsif strict
-          warnings << "rigor #{rigor} implies '#{name}' but it was not surfaced."
+          warnings << "rigor '#{rigor}' implies '#{name}' but it was not surfaced."
         end
       end
 
@@ -75,6 +82,9 @@ module Rigor
       end
 
       sem_errors, warnings = semantic(d, strict)
+      if Summary.drift?(text, d)
+        sem_errors << "The summary block does not match the stamp. Run `rigor fmt <file>` to regenerate it."
+      end
       if legacy
         warnings << "This is a v0.1 frontmatter stamp. Run `rigor fmt --migrate <file>` to convert it to the v0.2 layout."
       end

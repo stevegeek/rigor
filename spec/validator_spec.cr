@@ -31,7 +31,7 @@ describe Rigor::Validator do
     it "warns about unsurfaced implied checks in strict mode" do
       r = Rigor::Validator.validate(File.read("spec/fixtures/r4_partial.md"), strict: true)
       r.valid.should be_true
-      r.warnings.select { |w| w.includes?("implies") }.size.should eq(4)
+      r.warnings.select { |w| w.includes?("implies") }.size.should eq(1)
     end
 
     it "errors when a surfaced check contradicts the level" do
@@ -114,6 +114,27 @@ describe Rigor::Validator do
     it "rejects a malformed assessed date and an unknown spec version" do
       Rigor::Validator.validate("---\nrigor: comprehended\nvouch: neutral\nassessed: July 2026\n---\n").valid.should be_false
       Rigor::Validator.validate("---\nrigor: comprehended\nvouch: neutral\nspec: \"9.9\"\n---\n").valid.should be_false
+    end
+
+    it "requires surfaced checks for levels above the line (show your working)" do
+      r = Rigor::Validator.validate("---\nrigor: engineered\nvouch: yes\n---\n")
+      r.valid.should be_false
+      r.errors.join.should contain("show your working")
+      # comprehended stays terse-friendly
+      Rigor::Validator.validate("---\nrigor: comprehended\nvouch: neutral\n---\n").valid.should be_true
+      # low levels stay terse-friendly
+      Rigor::Validator.validate("---\nrigor: skimmed\nvouch: neutral\n---\n").valid.should be_true
+    end
+
+    it "errors when the summary block does not match the stamp" do
+      text = File.read("spec/fixtures/minimal_v2.md").sub("I have read and understood", "I promise I read")
+      r = Rigor::Validator.validate(text)
+      r.valid.should be_false
+      r.errors.join.should contain("summary")
+    end
+
+    it "accepts a matching summary block" do
+      Rigor::Validator.validate(File.read("spec/fixtures/minimal_v2.md")).valid.should be_true
     end
   end
 end
