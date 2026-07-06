@@ -114,13 +114,12 @@ understood and code a human can account for.
 
 ## Why I made this
 
-I open-source things, and I now use AI (LLMs) while coding.
-
-This whole idea here is an idea I worked out in conversation with an LLM too.
+I open-source things, and I now use AI (LLMs) while coding. Even this idea here was one I 
+fleshed out in conversation with an LLM.
 
 So the honest question about any repo of mine is no longer *whether* an LLM was involved,
 as at some level it probably was. But the honest question, and what I want people to
-understand for their own sake (and mine!) is how much rigor I actually
+understand for their own sake (and mine!), is **how much rigor** I actually
 applied to the work, however I did it: did I review it, do I understand it, do I
 stand behind it.
 
@@ -132,19 +131,16 @@ discern. A few years ago, a half-baked script in a repo with no README would obv
 worth a second look. But now a similar project might seem feature complete and fully documented
 etc, but still not something I'd vouch for.
 
-For a while I worried that the subjective parts — how deeply something was thought through,
-whether I had *really* reviewed it — did not belong in a format that calls itself
-machine-checkable, and an earlier draft tried to launder them out. That was a mistake, and I have
-put them back deliberately. Nothing here was ever objective: "security reviewed" in any README is
-a self-report too, and always was. So the convention does not pretend to *measure* anything. It
-is an honesty mechanism, not a measurement — it records who did each stage and how deliberately,
-keeps those claims consistent with each other, and leaves believing them to you. That is more
-dependable than a vibe or a polished README precisely because it stops dressing a judgement call
-up as a number.
+For a while I worried that the subjective parts did not belong in a format that calls itself
+machine-checkable. For example, if I tried to convey how deeply something was thought through by myself,
+or whether I had really reviewed it. The first version of rigor therefore tried to focus on more
+"objective" assessment. But nothing here was ever objective: "security reviewed" in any README is
+a self-report too. So I have decided that the convention does not pretend to measure anything and is purely subjective. 
+It is an honesty mechanism, and based on trust. It records who did each stage and how deliberately,
+keeps those claims consistent with each other, but leaves believing them to you. 
 
-Ie the point is how much rigor went into the work.
-
-It is a personal convention, not a finished standard.
+The trust you have in me decides whether these assessments mean anything at all. You don't have to trust me.
+But why would you consider using my projects unless some trust existed.
 
 ## Development
 
