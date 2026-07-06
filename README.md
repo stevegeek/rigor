@@ -53,9 +53,8 @@ the generated summary has drifted from the stamp. Exit `0` valid, `1` invalid, `
 - `--strict`: also warns about checks a level implies but that were not surfaced.
 - `--json`: machine-readable `{ "valid", "errors", "warnings" }`.
 
-**`rigor fmt <file> [--migrate]`** — regenerate the summary block from the stamp, in place, so
-the human-facing prose can never disagree with the machine-readable YAML. `--migrate` converts a
-legacy v0.1 frontmatter file to the v0.2 layout, including the `origin` → `stages` mapping.
+**`rigor fmt <file>`** — regenerate the summary block from the stamp, in place, so the
+human-facing prose can never disagree with the machine-readable YAML.
 
 **`rigor badge <file> [--infobox] [-o out.svg]`** — render an SVG badge (or the larger
 `--infobox`) to stdout or a file. `--params "rigor=skimmed&vouch=neutral"` renders from a query

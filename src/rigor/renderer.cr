@@ -120,13 +120,6 @@ module Rigor
         end
         stages[stage] = JSON::Any.new(st) unless st.empty?
       end
-      # Legacy v0.1 badge URLs keep working.
-      if a = params["authored"]?
-        stages["implementation"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::AUTHORED_TO_BY[a]? || a)})
-      end
-      if m = params["maintenance"]?
-        stages["maintenance"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::MAINTENANCE_TO_BY[m]? || m)})
-      end
       obj["stages"] = JSON::Any.new(stages) unless stages.empty?
 
       obj["assessed"] = JSON::Any.new(params["assessed"]) if params.has_key?("assessed")

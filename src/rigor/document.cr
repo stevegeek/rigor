@@ -6,42 +6,23 @@ module Rigor
   module Document
     extend self
 
-    # Fences may carry trailing spaces/tabs and CRLF, but NOT arbitrary
-    # whitespace: `\s*` overlaps the `\n` and backtracks catastrophically on
-    # whitespace-heavy input with no closing fence. `[ \t]*\r?\n` cannot.
-    FRONTMATTER = /\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\z)/m
-
-    # The stamp is spec'd as shallow and hand-written; a real one is well under
-    # 1 KB. Cap the frontmatter so a hostile file cannot force a huge parse.
-    MAX_FRONTMATTER_BYTES = 64 * 1024
+    # The stamp is spec'd as shallow and hand-written; a real one is well
+    # under 1 KB. Cap it so a hostile file cannot force a huge parse.
+    MAX_STAMP_BYTES = 64 * 1024
 
     STAMP_HEADING = /^##\s+Stamp\s*$/
     FENCE_OPEN    = /^```ya?ml\s*$/
     FENCE_CLOSE   = /^```\s*$/
 
-    # Normalize any accepted alias — v0.2 name, R-code, v0.1 name, or the
-    # combined "R3 engineered" form — to the canonical v0.2 name. Unknown
-    # values pass through so the schema reports them.
+    # Normalize to the canonical v0.2 name: trim + downcase, and return that
+    # if it matches a known level. Anything else passes through unchanged so
+    # the schema reports it.
     def normalize_rigor(value : String) : String
-      token = value.strip
-      resolved = resolve_level(token)
-      return resolved if resolved
-      token.split(/\s+/).each do |part|
-        if r = resolve_level(part)
-          return r
-        end
-      end
-      value
+      token = value.strip.downcase
+      Vocabulary::LEVELS.includes?(token) ? token : value
     end
 
-    private def resolve_level(token : String) : String?
-      down = token.downcase
-      return down if Vocabulary::LEVELS.includes?(down)
-      Vocabulary::CODE_TO_NAME[token]? || Vocabulary::CODE_TO_NAME[token.upcase]? ||
-        Vocabulary::V01_NAMES[down]?
-    end
-
-    # The v0.2 stamp: the fenced yaml block under the LAST "## Stamp" heading.
+    # The stamp: the fenced yaml block under the LAST "## Stamp" heading.
     # Line-scanned, not regexed across the file, so pathological input cannot
     # trigger catastrophic backtracking.
     private def stamp_yaml(text : String) : String?
@@ -68,65 +49,35 @@ module Rigor
       lines[(open + 1)...close].join('\n')
     end
 
-    def extract(text : String) : {JSON::Any?, String?, Bool}
+    def extract(text : String) : {JSON::Any?, String?}
       if yaml = stamp_yaml(text)
-        doc, err = parse_stamp(yaml)
-        return {doc, err, false}
+        return parse_stamp(yaml)
       end
-      m =
-        begin
-          FRONTMATTER.match(text)
-        rescue Regex::Error
-          nil
-        end
-      if m
-        doc, err = parse_stamp(m[1])
-        return {doc, err, true} if err
-        return {migrate_legacy(doc.not_nil!), nil, true}
-      end
-      {nil, "No stamp found. Expected a '## Stamp' section with a fenced yaml block (v0.2), or legacy '---' frontmatter (v0.1).", false}
+      {nil, "No stamp found. Expected a '## Stamp' section with a fenced yaml block."}
     end
 
-    # v0.1 -> v0.2 in-memory migration: origin becomes stage actors. Level
-    # names were already normalized by coerce_top/normalize_rigor.
-    private def migrate_legacy(doc : JSON::Any) : JSON::Any
-      obj = doc.as_h.dup
-      if origin = obj.delete("origin").try(&.as_h?)
-        stages = obj["stages"]?.try(&.as_h?) || {} of String => JSON::Any
-        if a = origin["authored"]?.try(&.as_s)
-          stages["implementation"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::AUTHORED_TO_BY[a]? || a)})
-        end
-        if mnt = origin["maintenance"]?.try(&.as_s)
-          stages["maintenance"] = JSON::Any.new({"by" => JSON::Any.new(Vocabulary::MAINTENANCE_TO_BY[mnt]? || mnt)})
-        end
-        obj["stages"] = JSON::Any.new(stages) unless stages.empty?
-      end
-      JSON::Any.new(obj)
-    end
-
-    # Renamed from the old `extract`: size cap -> alias check -> YAML.parse ->
-    # mapping check -> coerce_top, operating on a yaml string (either the
-    # v0.2 Stamp fence contents or the v0.1 frontmatter block).
+    # size cap -> alias check -> YAML.parse -> mapping check -> coerce_top,
+    # operating on the Stamp fence contents.
     private def parse_stamp(fm : String) : {JSON::Any?, String?}
-      if fm.bytesize > MAX_FRONTMATTER_BYTES
-        return {nil, "Frontmatter is too large (#{fm.bytesize} bytes; limit is #{MAX_FRONTMATTER_BYTES})."}
+      if fm.bytesize > MAX_STAMP_BYTES
+        return {nil, "Stamp is too large (#{fm.bytesize} bytes; limit is #{MAX_STAMP_BYTES})."}
       end
 
       # YAML anchors/aliases are never needed in a shallow stamp and enable a
       # "billion laughs" expansion that detonates during parse. Reject them.
       if contains_alias?(fm)
-        return {nil, "Frontmatter uses YAML anchors/aliases, which are not allowed."}
+        return {nil, "Stamp uses YAML anchors/aliases, which are not allowed."}
       end
 
       yaml = begin
         YAML.parse(fm)
       rescue ex : YAML::ParseException
-        return {nil, "Frontmatter is not valid YAML: #{ex.message}"}
+        return {nil, "Stamp is not valid YAML: #{ex.message}"}
       end
 
       raw = yaml.raw
       unless raw.is_a?(Hash)
-        return {nil, "Frontmatter parsed but is not a mapping of fields."}
+        return {nil, "Stamp parsed but is not a mapping of fields."}
       end
 
       {coerce_top(yaml), nil}

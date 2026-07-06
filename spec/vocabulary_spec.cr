@@ -5,13 +5,6 @@ describe Rigor::Vocabulary do
     Rigor::Vocabulary::LEVELS.should eq(%w[unexamined skimmed comprehended engineered owned])
   end
 
-  it "maps codes and v0.1 names to v0.2 names" do
-    Rigor::Vocabulary::CODE_TO_NAME["R1"].should eq("skimmed")
-    Rigor::Vocabulary::CODE_TO_NAME["R0"].should eq("unexamined")
-    Rigor::Vocabulary::V01_NAMES["surface"].should eq("skimmed")
-    Rigor::Vocabulary::V01_NAMES["none"].should eq("unexamined")
-  end
-
   it "has a first-person sentence for every level and vouch value" do
     Rigor::Vocabulary::LEVELS.each { |l| Rigor::Vocabulary::LEVEL_SENTENCE[l].should_not be_empty }
     Rigor::Vocabulary::VOUCH_VALUES.each { |v| Rigor::Vocabulary::VOUCH_SENTENCE[v].should_not be_empty }

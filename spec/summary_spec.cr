@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def doc_from(yaml : String) : JSON::Any
-  d, err, _legacy = Rigor::Document.extract("---\n#{yaml}\n---\n")
+  d, err = Rigor::Document.extract(stamp_doc(yaml))
   raise err.to_s if err
   d.not_nil!
 end

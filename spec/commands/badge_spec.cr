@@ -12,7 +12,7 @@ describe Rigor::Commands::Badge do
 
   it "renders from --params" do
     io = IO::Memory.new
-    code = Rigor::Commands::Badge.run(nil, "rigor=R2&vouch=neutral", infobox: false, out_path: nil, io: io)
+    code = Rigor::Commands::Badge.run(nil, "rigor=comprehended&vouch=neutral", infobox: false, out_path: nil, io: io)
     code.should eq(0)
     io.to_s.should contain(">comprehended<")
     io.to_s.should contain(">no vouch<")
@@ -21,6 +21,13 @@ describe Rigor::Commands::Badge do
   it "renders an invalid badge (exit 1) for bad params" do
     io = IO::Memory.new
     code = Rigor::Commands::Badge.run(nil, "rigor=R9&vouch=yes", infobox: false, out_path: nil, io: io)
+    code.should eq(1)
+    io.to_s.should contain("rigor: invalid")
+  end
+
+  it "rejects an R-code as a badge param (aliases are no longer accepted)" do
+    io = IO::Memory.new
+    code = Rigor::Commands::Badge.run(nil, "rigor=R2&vouch=yes", infobox: false, out_path: nil, io: io)
     code.should eq(1)
     io.to_s.should contain("rigor: invalid")
   end

@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def doc_for(path)
-  d, _, _ = Rigor::Document.extract(File.read(path))
+  d, _ = Rigor::Document.extract(File.read(path))
   d.not_nil!
 end
 
@@ -43,7 +43,7 @@ describe Rigor::Renderer do
     end
 
     it "renders plain-language badge text with matching title and aria-label" do
-      doc, _, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal_v2.md"))
+      doc, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal_v2.md"))
       svg = Rigor::Renderer.badge(doc.not_nil!)
       svg.should contain(">comprehended<")
       svg.should contain(">no vouch<")
@@ -53,14 +53,14 @@ describe Rigor::Renderer do
     end
 
     it "qualifies a below-the-line badge when review was AI-only" do
-      text = "---\nrigor: skimmed\nvouch: neutral\nchecks:\n  security_reviewed: ai\n---\n"
-      doc, _, _ = Rigor::Document.extract(text)
+      text = stamp_doc("rigor: skimmed\nvouch: neutral\nchecks:\n  security_reviewed: ai")
+      doc, _ = Rigor::Document.extract(text)
       Rigor::Renderer.badge(doc.not_nil!).should contain("skimmed · AI-reviewed")
     end
 
     it "uses neutral slate for honest low stamps, not warning amber" do
-      text = "---\nrigor: skimmed\nvouch: neutral\n---\n"
-      doc, _, _ = Rigor::Document.extract(text)
+      text = stamp_doc("rigor: skimmed\nvouch: neutral")
+      doc, _ = Rigor::Document.extract(text)
       svg = Rigor::Renderer.badge(doc.not_nil!)
       svg.should contain("#64748b")
       svg.should_not contain("#c2410c")

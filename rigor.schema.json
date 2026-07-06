@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/rigor.schema.json",
   "title": "Rigor, Vouch, Stages disclosure",
-  "description": "Structural and vocabulary validation for the RIGOR.md stamp block (the fenced yaml under a trailing '## Stamp' heading, or legacy '---' frontmatter). Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
+  "description": "Structural and vocabulary validation for the RIGOR.md stamp block (the fenced yaml under a trailing '## Stamp' heading). Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": ["rigor", "vouch"],
   "properties": {
     "rigor": {
-      "description": "Human review/ownership level for the most recent significant changes, as a v0.2 level name. Tools also accept the legacy codes (R0-R4) and v0.1 names (none, surface) as input and normalize them to these names before validation.",
+      "description": "Human review/ownership level for the most recent significant changes, as a v0.2 level name.",
       "type": "string",
       "enum": ["unexamined", "skimmed", "comprehended", "engineered", "owned"]
     },

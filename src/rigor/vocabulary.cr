@@ -1,16 +1,7 @@
 module Rigor
   module Vocabulary
-    # v0.2: names ARE the canonical encoding. Codes and v0.1 names are
-    # accepted as input aliases (Document.normalize_rigor) but never emitted.
+    # v0.2: names are the canonical encoding, and the only accepted vocabulary.
     LEVELS = %w[unexamined skimmed comprehended engineered owned]
-
-    CODE_TO_NAME = {
-      "R0" => "unexamined", "R1" => "skimmed", "R2" => "comprehended",
-      "R3" => "engineered", "R4" => "owned",
-    }
-
-    # v0.1 names that were renamed in v0.2.
-    V01_NAMES = {"none" => "unexamined", "surface" => "skimmed"}
 
     # Everything at or above the comprehension line.
     ABOVE_LINE = %w[comprehended engineered owned]
@@ -59,17 +50,6 @@ module Rigor
 
     STAGE_KEYS = %w[idea plan implementation maintenance]
     DEPTHS     = %w[one-shot considered deep]
-
-    # v0.1 origin values map onto stage actors (legacy migration, Document).
-    # ai-led -> human-with-ai deliberately merges "human leads with AI help"
-    # and "AI leads with human oversight": the load-bearing bit is whether a
-    # human is in the loop at all.
-    AUTHORED_TO_BY = {
-      "human-crafted" => "human", "ai-assisted" => "human-with-ai", "ai-generated" => "ai",
-    }
-    MAINTENANCE_TO_BY = {
-      "human-led" => "human", "ai-led" => "human-with-ai", "ai-auto" => "ai",
-    }
 
     # Short display forms for the infobox stage story.
     STAGE_LABEL = {"idea" => "Idea", "plan" => "Plan", "implementation" => "Implementation", "maintenance" => "Maintenance"}

@@ -10,7 +10,7 @@ describe Rigor::Commands::Validate do
 
   it "returns 1 for a contradicting file" do
     path = File.tempname("rigor", ".md")
-    File.write(path, "---\nrigor: R3\nchecks:\n  security_reviewed: no\nvouch: neutral\n---\n")
+    File.write(path, stamp_doc("rigor: engineered\nchecks:\n  security_reviewed: no\nvouch: neutral"))
     io = IO::Memory.new
     code = Rigor::Commands::Validate.run(path, strict: false, json: false, io: io)
     code.should eq(1)

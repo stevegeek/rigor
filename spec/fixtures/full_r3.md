@@ -1,4 +1,9 @@
----
+# body
+
+## Stamp
+
+```yaml
+spec: "0.2"
 rigor: engineered
 checks:
   comprehended: yes
@@ -11,5 +16,4 @@ stages:
   idea: {by: human, depth: deep}
   implementation: {by: human-with-ai}
   maintenance: {by: human}
----
-# body
+```

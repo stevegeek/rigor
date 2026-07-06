@@ -5,13 +5,13 @@ require "../stamp_yaml"
 module Rigor::Commands::Fmt
   extend self
 
-  def run(path : String, migrate : Bool, io : IO) : Int32
+  def run(path : String, io : IO) : Int32
     unless File.exists?(path)
       io.puts "error: no such file: #{path}"
       return 2
     end
     text = File.read(path)
-    doc, err, legacy = Rigor::Document.extract(text)
+    doc, err = Rigor::Document.extract(text)
     if err
       io.puts "error: #{err}"
       return 1
@@ -25,41 +25,8 @@ module Rigor::Commands::Fmt
       return 1
     end
 
-    if legacy && !migrate
-      io.puts "error: #{path} is a v0.1 frontmatter stamp; re-run with --migrate to convert it"
-      return 1
-    end
-
-    new_text =
-      if legacy
-        body = text.sub(Rigor::Document::FRONTMATTER, "").strip
-        <<-MD
-        # Who made this, and how carefully
-
-        #{Rigor::Summary.block(d)}
-
-        #{body}
-
-        ## Stamp
-
-        ```yaml
-        #{Rigor::StampYAML.emit(d)}```
-
-        MD
-      else
-        Rigor::Summary.replace(text, d) || insert_summary(text, d)
-      end
-
+    new_text = Rigor::Summary.replace(text, d) || insert_summary(text, d)
     File.write(path, new_text)
-
-    if legacy
-      sem_errors, _ = Rigor::Validator.semantic(d, strict: false)
-      unless sem_errors.empty?
-        sem_errors.each { |e| io.puts "  warning: migrated stamp is not valid under v0.2 rules — #{e}" }
-        io.puts "wrote #{path} (stamp needs attention: #{sem_errors.size} errors)"
-        return 1
-      end
-    end
 
     io.puts "wrote #{path}"
     0

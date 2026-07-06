@@ -9,7 +9,7 @@ describe Rigor::Server do
     Fiber.yield
 
     begin
-      res = HTTP::Client.get("http://#{address}/badge.svg?rigor=R2&vouch=neutral")
+      res = HTTP::Client.get("http://#{address}/badge.svg?rigor=comprehended&vouch=neutral")
       res.status_code.should eq(200)
       res.headers["Content-Type"].should eq("image/svg+xml")
       res.headers["Cache-Control"].should contain("max-age")
