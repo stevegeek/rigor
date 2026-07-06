@@ -8,7 +8,7 @@ describe Rigor::Commands::Init do
     stages = {"idea" => {"by" => "human", "depth" => "deep"}, "implementation" => {"by" => "ai"}}
     Rigor::Commands::Init.run(dir, "skimmed", "neutral", stages, "2026-07-05", false, IO::Memory.new).should eq(0)
     text = File.read(File.join(dir, "RIGOR.md"))
-    text.lines.first.should eq("# About this code")
+    text.lines.first.should eq("# Who made this, and how carefully")
     text.should contain(Rigor::Summary::MARKER_START)
     text.should contain("## Notes")
     text.should contain("## Stamp")

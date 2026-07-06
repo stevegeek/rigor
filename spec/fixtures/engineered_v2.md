@@ -1,4 +1,4 @@
-# About this code
+# Who made this, and how carefully
 
 <!-- rigor:summary -->
 **The idea was mine and was worked in depth, over iterations. The plan was mine, worked with an AI and was thought through. The implementation was written by me with an AI. I understand this code; it was deliberately reviewed for quality and for security, issues found were fixed, and it has tests I trust. It was reviewed for quality (by me with an AI), reviewed for security (by me) and tested. A human drives changes today. This assessment is as of 2026-07. I recommend this for use; I put my name behind it.**

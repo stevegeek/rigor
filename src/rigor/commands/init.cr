@@ -43,7 +43,7 @@ module Rigor::Commands::Init
     end
 
     File.write(path, <<-MD)
-    # About this code
+    # Who made this, and how carefully
 
     #{Rigor::Summary.block(doc)}
 

@@ -34,7 +34,7 @@ module Rigor::Commands::Fmt
       if legacy
         body = text.sub(Rigor::Document::FRONTMATTER, "").strip
         <<-MD
-        # About this code
+        # Who made this, and how carefully
 
         #{Rigor::Summary.block(d)}
 
