@@ -30,7 +30,7 @@ No recommendation either way on its use by third parties.
 ## Stamp
 
 ```yaml
-spec: "0.2"
+spec: "0.3"
 rigor: skimmed
 vouch: neutral
 checks:

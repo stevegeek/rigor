@@ -9,7 +9,7 @@ completely unreviewed, or actively maintained and not vouched for. The full conv
 reasoning behind each level is in [`SPEC.md`](SPEC.md).
 
 <!-- rigor:line -->
-> _Placeholder. `rigor embed RIGOR.md` generates the real line and it gets pasted between these markers; `rigor validate RIGOR.md --readme README.md` then keeps it honest._
+> "I have run and skimmed this code, but I have not read it properly. No human has understood it line by line. I make no recommendation either way about depending on it." — [RIGOR.md](RIGOR.md)
 <!-- /rigor:line -->
 
 ## The `rigor` CLI
