@@ -1,11 +1,13 @@
 require "./spec_helper"
 
 describe "end to end via CLI.run" do
-  it "validate → 0, badge → svg, embed → markdown, schema → json" do
+  it "validate → 0, embed → README line block" do
     Rigor::CLI.run(["validate", "spec/fixtures/full_r3.md"], IO::Memory.new).should eq(0)
     io = IO::Memory.new
-    Rigor::CLI.run(["badge", "spec/fixtures/full_r3.md"], io)
-    io.to_s.should contain("<svg")
+    Rigor::CLI.run(["embed", "spec/fixtures/full_r3.md"], io)
+    io.to_s.should contain(Rigor::Summary::LINE_MARKER_START)
+    io.to_s.should contain(Rigor::Summary::LINE_MARKER_END)
+    io.to_s.should contain("Paste into your README")
   end
 
   it "returns 2 on unknown command and 1 on invalid document" do
@@ -14,5 +16,16 @@ describe "end to end via CLI.run" do
     File.write(bad, "no frontmatter")
     Rigor::CLI.run(["validate", bad], IO::Memory.new).should eq(1)
     File.delete(bad)
+  end
+
+  it "the banner drops badge/serve and validate's usage line mentions --readme" do
+    io = IO::Memory.new
+    Rigor::CLI.run([] of String, io)
+    io.to_s.should_not contain("badge")
+    io.to_s.should_not contain("serve")
+
+    io2 = IO::Memory.new
+    Rigor::CLI.run(["validate"], io2)
+    io2.to_s.should contain("--readme")
   end
 end

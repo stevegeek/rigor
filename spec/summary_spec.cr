@@ -6,6 +6,11 @@ private def doc_from(yaml : String) : JSON::Any
   d.not_nil!
 end
 
+private def doc_for(path) : JSON::Any
+  d, _ = Rigor::Document.extract(File.read(path))
+  d.not_nil!
+end
+
 describe Rigor::Summary do
   it "composes the full chronological story" do
     d = doc_from(<<-Y)
@@ -64,5 +69,48 @@ describe Rigor::Summary do
     d = doc_from("rigor: skimmed\nvouch: neutral\nstages:\n  maintenance: {by: human, activity: dormant}")
     Rigor::Summary.compose(d).should contain(
       "Nothing has needed changing lately; I still use this and would respond if it broke.")
+  end
+
+  # Moved from spec/renderer_spec.cr's ".describe" tests when Renderer.describe
+  # (a thin wrapper around Summary.compose) was deleted with the badge cascade.
+  it "states the author's claimed level as a first-person sentence" do
+    Rigor::Summary.compose(doc_for("spec/fixtures/full_r3.md"))
+      .should contain("I understand this code; it was deliberately reviewed for quality and for security")
+  end
+
+  it "does not assert 'tested' when tested is not-applicable" do
+    text = Rigor::Summary.compose(doc_for("spec/fixtures/full_r3.md"))
+    # tested is not-applicable in this fixture; it must not appear as a done check
+    text.should_not contain("tested")
+  end
+
+  it "lists only surfaced yes-checks" do
+    doc = JSON.parse(%({"rigor":"owned","vouch":"yes","checks":{"security_reviewed":"yes"}}))
+    text = Rigor::Summary.compose(doc)
+    text.should contain("reviewed for security")
+    text.should_not contain("comprehended")
+  end
+
+  it "states the vouch and stage story" do
+    text = Rigor::Summary.compose(doc_for("spec/fixtures/full_r3.md"))
+    text.should contain("I recommend this for use; I put my name behind it.")
+    text.should contain("A human drives changes today.")
+  end
+
+  it "composes the README line from rigor + vouch (+why)" do
+    d = doc_from("rigor: skimmed\nvouch: neutral")
+    Rigor::Summary.line(d).should eq(
+      "I have run and skimmed this code, but I have not read it properly. No human has understood it line by line. " \
+      "I make no recommendation either way about depending on it.")
+    Rigor::Summary.line_block(d).should eq(
+      "#{Rigor::Summary::LINE_MARKER_START}\n> \"#{Rigor::Summary.line(d)}\" — [RIGOR.md](RIGOR.md)\n#{Rigor::Summary::LINE_MARKER_END}")
+  end
+
+  it "detects README line drift only when markers are present" do
+    d = doc_from("rigor: skimmed\nvouch: neutral")
+    good = "# P\n\n#{Rigor::Summary.line_block(d)}\n"
+    Rigor::Summary.line_drift?(good, d).should be_false
+    Rigor::Summary.line_drift?(good.sub("skimmed this code", "read every line"), d).should be_true
+    Rigor::Summary.line_drift?("# P\nno markers", d).should be_false
   end
 end

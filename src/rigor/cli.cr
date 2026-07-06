@@ -1,8 +1,6 @@
 require "option_parser"
 require "./commands/validate"
-require "./commands/badge"
 require "./commands/embed"
-require "./commands/serve"
 require "./commands/init"
 require "./commands/schema"
 require "./commands/fmt"
@@ -18,9 +16,7 @@ module Rigor::CLI
     Commands:
       init      Scaffold a RIGOR.md stamp
       validate  Validate a RIGOR.md (structural + semantic)
-      badge     Render an SVG badge or infobox
-      embed     Emit README markdown snippets
-      serve     Run the badge HTTP service
+      embed     Print the paste-ready README line
       schema    Print the embedded JSON Schema
       fmt       Regenerate the summary from the stamp
     USAGE
@@ -61,51 +57,29 @@ module Rigor::CLI
     when "validate"
       strict = false
       json = false
+      readme = nil.as(String?)
       files = [] of String
       OptionParser.parse(rest) do |p|
         p.on("--strict", "Warn on implied-but-unsurfaced checks") { strict = true }
         p.on("--json", "Machine-readable output") { json = true }
+        p.on("--readme PATH", "Check PATH's rigor:line block for drift against the stamp") { |x| readme = x }
         p.unknown_args { |args| files = args }
       end
       if files.empty?
-        io.puts "usage: rigor validate <file> [--strict] [--json]"
+        io.puts "usage: rigor validate <file> [--strict] [--json] [--readme PATH]"
         return 2
       end
-      Commands::Validate.run(files.first, strict, json, io)
-    when "badge"
-      infobox = false
-      out_path = nil.as(String?)
-      params = nil.as(String?)
-      files = [] of String
-      OptionParser.parse(rest) do |p|
-        p.on("--infobox", "Render the larger infobox") { infobox = true }
-        p.on("-o PATH", "--out PATH", "Write SVG to PATH") { |x| out_path = x }
-        p.on("--params Q", "Render from a query string instead of a file") { |x| params = x }
-        p.unknown_args { |args| files = args }
-      end
-      Commands::Badge.run(files.first?, params, infobox, out_path, io)
+      Commands::Validate.run(files.first, strict, json, io, readme)
     when "embed"
-      base = Commands::Embed::DEFAULT_BASE
       files = [] of String
       OptionParser.parse(rest) do |p|
-        p.on("--base URL", "Base URL for the badge service") { |x| base = x }
         p.unknown_args { |args| files = args }
       end
       if files.empty?
-        io.puts "usage: rigor embed <file> [--base URL]"
+        io.puts "usage: rigor embed <file>"
         return 2
       end
-      Commands::Embed.run(files.first, base, io)
-    when "serve"
-      port = 8080
-      base = Commands::Embed::DEFAULT_BASE
-      bind = Commands::Serve::DEFAULT_BIND
-      OptionParser.parse(rest) do |p|
-        p.on("--port N", "Port to listen on (default 8080)") { |x| port = x.to_i }
-        p.on("--base URL", "Base URL advertised in generated links") { |x| base = x }
-        p.on("--bind ADDR", "Address to bind (default 127.0.0.1)") { |x| bind = x }
-      end
-      Commands::Serve.run(port, base, bind, io)
+      Commands::Embed.run(files.first, io)
     when "schema"
       Commands::Schema.run(io)
     when "fmt"

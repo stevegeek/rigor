@@ -4,14 +4,17 @@ require "./document"
 
 module Rigor
   # Composes the canonical first-person summary from a stamp. This is the
-  # single source of the human-facing sentences: RIGOR.md bold summary, badge
-  # <desc>/alt text, and the /r page all come from here, so prose can never
-  # drift from the machine claims without the validator noticing.
+  # single source of the human-facing sentences: RIGOR.md's bold summary and
+  # the README line both come from here, so prose can never drift from the
+  # machine claims without the validator noticing.
   module Summary
     extend self
 
     MARKER_START = "<!-- rigor:summary -->"
     MARKER_END   = "<!-- /rigor:summary -->"
+
+    LINE_MARKER_START = "<!-- rigor:line -->"
+    LINE_MARKER_END   = "<!-- /rigor:line -->"
 
     OWNER_PHRASE = {"human" => "mine", "human-with-ai" => "mine, developed with an AI", "ai" => "an AI's"}
     DEPTH_TAIL   = {"one-shot" => " and was taken as it first came", "considered" => " and was thought through", "deep" => " and was worked in depth, over iterations"}
@@ -105,6 +108,29 @@ module Rigor
       return false unless si && ei && ei > si
       inner = text[(si + MARKER_START.size)...ei].strip
       inner != "**#{compose(doc)}**"
+    end
+
+    # The README line: a first-person sentence pair (rigor + vouch, same why
+    # rule as compose) short enough to sit as a single blockquote line, rather
+    # than the full chronological story compose() tells.
+    def line(doc : JSON::Any) : String
+      s = "#{Vocabulary::LEVEL_SENTENCE[doc["rigor"].as_s]} #{Vocabulary::VOUCH_SENTENCE[Document.vouch_claim(doc)]}"
+      if why = Document.vouch_why(doc)
+        s += " Why: #{why}"
+      end
+      s
+    end
+
+    def line_block(doc : JSON::Any) : String
+      "#{LINE_MARKER_START}\n> \"#{line(doc)}\" — [RIGOR.md](RIGOR.md)\n#{LINE_MARKER_END}"
+    end
+
+    def line_drift?(text : String, doc : JSON::Any) : Bool
+      si = text.index(LINE_MARKER_START)
+      ei = text.index(LINE_MARKER_END)
+      return false unless si && ei && ei > si
+      inner = text[(si + LINE_MARKER_START.size)...ei].strip
+      inner != "> \"#{line(doc)}\" — [RIGOR.md](RIGOR.md)"
     end
 
     private def join_and(parts : Array(String)) : String

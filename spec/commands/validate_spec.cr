@@ -42,4 +42,48 @@ describe Rigor::Commands::Validate do
   ensure
     File.delete(path) if path
   end
+
+  it "exits 1 and mentions README when the --readme line has drifted from the stamp" do
+    stamp_path = File.tempname("rigor", ".md")
+    readme_path = File.tempname("readme", ".md")
+    d, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal.md"))
+    File.write(stamp_path, File.read("spec/fixtures/minimal.md"))
+    stale_block = Rigor::Summary.line_block(d.not_nil!).sub("read and understood this code", "skimmed this code")
+    File.write(readme_path, "# P\n\n#{stale_block}\n")
+    io = IO::Memory.new
+    code = Rigor::Commands::Validate.run(stamp_path, strict: false, json: false, io: io, readme: readme_path)
+    code.should eq(1)
+    io.to_s.should contain("README")
+  ensure
+    File.delete(stamp_path) if stamp_path
+    File.delete(readme_path) if readme_path
+  end
+
+  it "exits 0 when the --readme line matches the stamp" do
+    stamp_path = File.tempname("rigor", ".md")
+    readme_path = File.tempname("readme", ".md")
+    File.write(stamp_path, File.read("spec/fixtures/minimal.md"))
+    d, _ = Rigor::Document.extract(File.read("spec/fixtures/minimal.md"))
+    File.write(readme_path, "# P\n\n#{Rigor::Summary.line_block(d.not_nil!)}\n")
+    io = IO::Memory.new
+    code = Rigor::Commands::Validate.run(stamp_path, strict: false, json: false, io: io, readme: readme_path)
+    code.should eq(0)
+  ensure
+    File.delete(stamp_path) if stamp_path
+    File.delete(readme_path) if readme_path
+  end
+
+  it "exits 0 silently when the --readme file has no line markers" do
+    stamp_path = File.tempname("rigor", ".md")
+    readme_path = File.tempname("readme", ".md")
+    File.write(stamp_path, File.read("spec/fixtures/minimal.md"))
+    File.write(readme_path, "# P\nno markers here\n")
+    io = IO::Memory.new
+    code = Rigor::Commands::Validate.run(stamp_path, strict: false, json: false, io: io, readme: readme_path)
+    code.should eq(0)
+    io.to_s.should_not contain("README")
+  ensure
+    File.delete(stamp_path) if stamp_path
+    File.delete(readme_path) if readme_path
+  end
 end

@@ -59,8 +59,9 @@ module Rigor
 
       # An AI-only review is a different claim from a human one once the
       # headline crosses into engineered/owned territory (below the line the
-      # badge's "AI-reviewed" qualifier already covers it). One warning names
-      # every affected check, rather than spamming one per check.
+      # summary sentence's "(by an AI)" actor parenthetical already covers
+      # it). One warning names every affected check, rather than spamming one
+      # per check.
       if rigor.in?("engineered", "owned")
         ai_only = %w[quality_reviewed security_reviewed].select { |k| checks[k]?.try(&.as_s) == "ai" }
         unless ai_only.empty?
