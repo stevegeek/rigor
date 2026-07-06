@@ -12,7 +12,7 @@ module Rigor
     MARKER_START = "<!-- rigor:summary -->"
     MARKER_END   = "<!-- /rigor:summary -->"
 
-    OWNER_PHRASE = {"human" => "mine", "human-with-ai" => "mine, worked with an AI", "ai" => "an AI's"}
+    OWNER_PHRASE = {"human" => "mine", "human-with-ai" => "mine, developed with an AI", "ai" => "an AI's"}
     DEPTH_TAIL   = {"one-shot" => " and was taken as it first came", "considered" => " and was thought through", "deep" => " and was worked in depth, over iterations"}
     DEPTH_ALONE  = {"one-shot" => "taken as it first came", "considered" => "thought through", "deep" => "worked in depth, over iterations"}
 
