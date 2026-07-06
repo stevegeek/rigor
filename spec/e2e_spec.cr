@@ -18,6 +18,17 @@ describe "end to end via CLI.run" do
     File.delete(bad)
   end
 
+  it "wires --readme through the CLI: drift → 1, missing README file → 2" do
+    stamp = File.tempname("stamp", ".md")
+    File.write(stamp, File.read("spec/fixtures/minimal.md"))
+    readme = File.tempname("readme", ".md")
+    File.write(readme, "# P\n\n<!-- rigor:line -->\n> \"stale\" — [RIGOR.md](RIGOR.md)\n<!-- /rigor:line -->\n")
+    Rigor::CLI.run(["validate", stamp, "--readme", readme], IO::Memory.new).should eq(1)
+    Rigor::CLI.run(["validate", stamp, "--readme", "/nonexistent-readme.md"], IO::Memory.new).should eq(2)
+    File.delete(stamp)
+    File.delete(readme)
+  end
+
   it "the banner drops badge/serve and validate's usage line mentions --readme" do
     io = IO::Memory.new
     Rigor::CLI.run([] of String, io)

@@ -8,7 +8,7 @@
   "required": ["rigor", "vouch"],
   "properties": {
     "rigor": {
-      "description": "Human review/ownership level for the most recent significant changes, as a v0.2 level name.",
+      "description": "Human review/ownership level for the most recent significant changes, as a level name.",
       "type": "string",
       "enum": ["unexamined", "skimmed", "comprehended", "engineered", "owned"]
     },

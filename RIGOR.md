@@ -17,10 +17,11 @@ Also:
 - **quality_reviewed / security_reviewed: ai** — I put the implementation through a dedicated
   quality review and a dedicated security review, both AI-performed, and acted on what came back:
   a validation bug where a non-mapping `checks:` block was silently accepted; a YAML anchor/alias
-  "billion laughs" memory-exhaustion vector; a frontmatter-regex crash on pathological input; and
-  hardening of the `serve` bind default. All fixes carry regression tests.
-- **tested: ai** — a full `crystal spec` suite covering the validator semantics, rendering,
-  embedding, the HTTP service, and the regressions above.
+  "billion laughs" memory-exhaustion vector; a stamp-parsing regex crash on pathological input;
+  and hardening of the badge server's bind default (that server, and the badge itself, were later
+  removed entirely in v0.3). Fixes to surviving code carry regression tests.
+- **tested: ai** — a full `crystal spec` suite covering the validator semantics, the summary and
+  README-line composition, formatting, and the regressions above.
 
 I have not comprehended the code myself, and I am not claiming anyone else should be depending on
 it, so `vouch` is **neutral**. 

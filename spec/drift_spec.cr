@@ -12,4 +12,9 @@ describe "schema/vocabulary drift" do
     cv = schema["$defs"]["checkValue"]["enum"].as_a.map(&.as_s)
     cv.sort.should eq(Rigor::Vocabulary::CHECK_VALUES.sort)
   end
+  it "maintenance activity values match" do
+    schema = JSON.parse(Rigor::Validator::SCHEMA_JSON)
+    av = schema["properties"]["stages"]["properties"]["maintenance"]["properties"]["activity"]["enum"].as_a.map(&.as_s)
+    av.sort.should eq(Rigor::Vocabulary::ACTIVITY.sort)
+  end
 end

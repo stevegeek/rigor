@@ -10,12 +10,16 @@ module Rigor::Commands::Validate
       io.puts "error: no such file: #{path}"
       return 2
     end
+    if readme && !File.exists?(readme)
+      io.puts "error: no such file: #{readme}"
+      return 2
+    end
     result = Rigor::Validator.validate(File.read(path), strict)
 
     errors = result.errors
     valid = result.valid
 
-    if readme && File.exists?(readme) && (doc = result.doc) && Rigor::Validator.structural(doc).empty?
+    if readme && (doc = result.doc) && Rigor::Validator.structural(doc).empty?
       if Rigor::Summary.line_drift?(File.read(readme), doc)
         errors = errors + ["The README line does not match the stamp. Run rigor embed and re-paste."]
         valid = false

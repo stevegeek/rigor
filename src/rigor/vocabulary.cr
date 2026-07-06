@@ -1,6 +1,6 @@
 module Rigor
   module Vocabulary
-    # v0.2: names are the canonical encoding, and the only accepted vocabulary.
+    # Names are the canonical encoding, and the only accepted vocabulary.
     LEVELS = %w[unexamined skimmed comprehended engineered owned]
 
     # Everything at or above the comprehension line.
