@@ -97,7 +97,7 @@ module Rigor
       end.join("\n  ")
       <<-SVG
       <svg xmlns="http://www.w3.org/2000/svg" width="#{width}" height="#{height}" role="img" aria-label="Rigor disclosure">
-        <title>Rigor #{esc(r)}, vouch #{esc(v)}</title>
+        <title>Rigor #{esc(r)}, #{esc(Vocabulary::VOUCH_LABEL[v]? || v)}</title>
         <desc>#{esc(desc)}</desc>
         <rect width="#{width}" height="#{height}" rx="6" fill="#f9fafb" stroke="#{level_color(r)}" stroke-width="2"/>
         #{texts}

@@ -57,6 +57,20 @@ module Rigor
         end
       end
 
+      # An AI-only review is a different claim from a human one once the
+      # headline crosses into engineered/owned territory (below the line the
+      # badge's "AI-reviewed" qualifier already covers it). One warning names
+      # every affected check, rather than spamming one per check.
+      if rigor.in?("engineered", "owned")
+        ai_only = %w[quality_reviewed security_reviewed].select { |k| checks[k]?.try(&.as_s) == "ai" }
+        unless ai_only.empty?
+          names = ai_only.join(" and ")
+          warnings << "#{names} satisfied by an AI alone, but rigor is '#{rigor}'. An AI-only " \
+                      "review is a different claim from a human one at this level; confirm it " \
+                      "supports the claim, or record the human pass."
+        end
+      end
+
       if stages = doc["stages"]?.try(&.as_h?)
         if stages["maintenance"]?.try(&.as_h?).try(&.["by"]?).try(&.as_s) == "ai" &&
            rigor.in?("engineered", "owned")

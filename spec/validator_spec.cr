@@ -135,5 +135,30 @@ describe Rigor::Validator do
     it "accepts a matching summary block" do
       Rigor::Validator.validate(File.read("spec/fixtures/minimal_v2.md")).valid.should be_true
     end
+
+    it "warns exactly once when a review check above the line was satisfied by AI alone" do
+      text = stamp_doc("rigor: engineered\nvouch: yes\nchecks:\n  comprehended: yes\n  quality_reviewed: human\n  security_reviewed: ai\n  tested: yes")
+      r = Rigor::Validator.validate(text)
+      r.warnings.select { |w| w.includes?("AI alone") }.size.should eq(1)
+      r.warnings.join.should contain("security_reviewed satisfied by an AI alone")
+    end
+
+    it "names both checks when quality_reviewed and security_reviewed are both AI alone" do
+      text = stamp_doc("rigor: owned\nvouch: yes\nchecks:\n  comprehended: yes\n  quality_reviewed: ai\n  security_reviewed: ai\n  tested: yes\n  owned: yes")
+      r = Rigor::Validator.validate(text)
+      r.warnings.join.should contain("quality_reviewed and security_reviewed satisfied by an AI alone")
+    end
+
+    it "does not warn about an AI-only review when the pass was human-with-ai" do
+      text = stamp_doc("rigor: engineered\nvouch: yes\nchecks:\n  comprehended: yes\n  quality_reviewed: human\n  security_reviewed: human-with-ai\n  tested: yes")
+      r = Rigor::Validator.validate(text)
+      r.warnings.select { |w| w.includes?("AI alone") }.should be_empty
+    end
+
+    it "does not warn about AI-only checks at or below the comprehension line" do
+      text = stamp_doc("rigor: skimmed\nvouch: neutral\nchecks:\n  security_reviewed: ai")
+      r = Rigor::Validator.validate(text)
+      r.warnings.select { |w| w.includes?("AI alone") }.should be_empty
+    end
   end
 end

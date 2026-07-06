@@ -51,7 +51,7 @@ the generated summary has drifted from the stamp. Exit `0` valid, `1` invalid, `
 
 - Default (non-strict): surfacing only some checks is fine and silent.
 - `--strict`: also warns about checks a level implies but that were not surfaced.
-- `--json`: machine-readable `{ "valid", "errors", "warnings" }`.
+- `--json`: machine-readable `{ "valid", "errors", "warnings", "spec_version" }`.
 
 **`rigor fmt <file>`** — regenerate the summary block from the stamp, in place, so the
 human-facing prose can never disagree with the machine-readable YAML.

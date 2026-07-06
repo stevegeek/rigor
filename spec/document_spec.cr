@@ -51,6 +51,13 @@ describe Rigor::Document do
       err.not_nil!.should contain("too large")
     end
 
+    it "rejects a v0.2 Stamp block whose yaml exceeds Document::MAX_STAMP_BYTES" do
+      big = stamp_doc("rigor: comprehended\nvouch: neutral\n# " + ("a" * Rigor::Document::MAX_STAMP_BYTES))
+      doc, err = Rigor::Document.extract(big)
+      doc.should be_nil
+      err.not_nil!.should contain("too large")
+    end
+
     it "does not crash on pathological whitespace with no closing fence" do
       text = "## Stamp\n\n```yaml\n" + ("\n \t" * 20000) + "rigor: comprehended\n"
       doc, err = Rigor::Document.extract(text)

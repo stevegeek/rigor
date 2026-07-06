@@ -1,6 +1,5 @@
 require "../validator"
 require "../summary"
-require "../stamp_yaml"
 
 module Rigor::Commands::Fmt
   extend self

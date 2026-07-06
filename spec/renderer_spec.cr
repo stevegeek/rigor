@@ -58,6 +58,12 @@ describe Rigor::Renderer do
       Rigor::Renderer.badge(doc.not_nil!).should contain("skimmed · AI-reviewed")
     end
 
+    it "does not qualify a below-the-line badge when the review was human-with-ai, not AI-only" do
+      text = stamp_doc("rigor: skimmed\nvouch: neutral\nchecks:\n  quality_reviewed: human-with-ai")
+      doc, _ = Rigor::Document.extract(text)
+      Rigor::Renderer.badge(doc.not_nil!).should_not contain("AI-reviewed")
+    end
+
     it "uses neutral slate for honest low stamps, not warning amber" do
       text = stamp_doc("rigor: skimmed\nvouch: neutral")
       doc, _ = Rigor::Document.extract(text)
@@ -72,6 +78,11 @@ describe Rigor::Renderer do
       svg = Rigor::Renderer.infobox(doc_for("spec/fixtures/minimal.md"))
       svg.should contain("Comprehended")
       svg.should contain("Vouch: no vouch")
+    end
+
+    it "agrees with the visible vouch label in its <title>" do
+      svg = Rigor::Renderer.infobox(doc_for("spec/fixtures/minimal.md"))
+      svg.should contain("<title>Rigor comprehended, no vouch</title>")
     end
   end
 

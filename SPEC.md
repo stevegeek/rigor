@@ -87,6 +87,26 @@ v0.2 adds a rule for claims above the comprehension line. Claiming a high level 
 
 The principle: below the comprehension line, terseness is fine — a low stamp claims little and owes little. Above it, if you are going to claim the work was done, you have to itemize it.
 
+Here is a complete `engineered` stamp that does show its working:
+
+```yaml
+spec: "0.2"
+rigor: engineered
+vouch: yes
+checks:
+  comprehended: yes
+  quality_reviewed: human-with-ai
+  security_reviewed: human
+  tested: yes
+stages:
+  idea: {by: human, depth: considered}
+  plan: {by: human-with-ai, depth: considered}
+  implementation: {by: human-with-ai}
+  maintenance: {by: human}
+```
+
+Drop the `checks:` block entirely and this same stamp becomes invalid: claiming `engineered` implies `comprehended`, `quality_reviewed`, `security_reviewed`, and `tested` all happened, and the validator will not take that on faith — it is exactly the "show your working" error above that catches the gap.
+
 ## Axis 2: Vouch
 
 Vouch is a speech act, not a measurement. It answers whether I am willing to put my name behind recommending this for use.
@@ -175,7 +195,7 @@ Three parts, in order:
 
 1. **The generated summary**, between `<!-- rigor:summary -->` and `<!-- /rigor:summary -->` markers. This bold paragraph is *generated from the stamp* by `rigor init` / `rigor fmt`; it is the same first-person sentences the badge and the `/r` page use. Its composition is chronological — idea → plan → implementation rigor → notable checks with their actors → maintenance → assessment → vouch last — so it reads as the story of the work.
 2. **`## Notes`** — free text, unchanged in role. Whatever a reader should know that the summary cannot carry.
-3. **`## Stamp`** — the machine-readable truth, as the **last** fenced ` ```yaml ` block in the file, under a `## Stamp` heading.
+3. **`## Stamp`** — the machine-readable truth: the first fenced ` ```yaml ` block after the **last** `## Stamp` heading in the file.
 
 Two fields are required: `rigor` and `vouch`. Everything else — including `spec` — is optional, and the minimal stamp is genuinely two lines:
 
