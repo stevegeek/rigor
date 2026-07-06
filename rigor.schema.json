@@ -13,9 +13,19 @@
       "enum": ["unexamined", "skimmed", "comprehended", "engineered", "owned"]
     },
     "vouch": {
-      "description": "Whether the author recommends depending on this code.",
-      "type": "string",
-      "enum": ["yes", "neutral", "withheld"]
+      "description": "Whether the author recommends depending on this code. A bare value, or a mapping carrying the reason.",
+      "oneOf": [
+        { "type": "string", "enum": ["yes", "neutral", "withheld"] },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claim"],
+          "properties": {
+            "claim": { "type": "string", "enum": ["yes", "neutral", "withheld"] },
+            "why": { "type": "string" }
+          }
+        }
+      ]
     },
     "checks": {
       "description": "Optional. The individual assurance checks behind the rigor level. Any subset may be present.",
@@ -44,7 +54,10 @@
         "maintenance": {
           "type": "object",
           "additionalProperties": false,
-          "properties": { "by": { "enum": ["human", "human-with-ai", "ai", "none"] } }
+          "properties": {
+            "by": { "enum": ["human", "human-with-ai", "ai", "none"] },
+            "activity": { "enum": ["active", "dormant"] }
+          }
         }
       }
     },
@@ -55,7 +68,7 @@
     "spec": {
       "description": "The spec version this stamp is written against.",
       "type": "string",
-      "enum": ["0.2"]
+      "enum": ["0.3"]
     },
     "assessed": {
       "description": "When the stamp was last brought up to date (YYYY-MM or YYYY-MM-DD).",

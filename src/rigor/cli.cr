@@ -37,6 +37,7 @@ module Rigor::CLI
     when "init"
       rigor = "comprehended"
       vouch = "neutral"
+      vouch_why = nil.as(String?)
       assessed = Time.local.to_s("%Y-%m-%d").as(String?)
       stages = {} of String => Hash(String, String)
       force = false
@@ -44,17 +45,19 @@ module Rigor::CLI
       OptionParser.parse(rest) do |p|
         p.on("--rigor V", "Rigor level (default comprehended)") { |x| rigor = x }
         p.on("--vouch V", "Vouch value (default neutral)") { |x| vouch = x }
+        p.on("--vouch-why V", "Reason for the vouch (builds the {claim, why} mapping)") { |x| vouch_why = x }
         p.on("--idea-by V", "stages.idea.by") { |x| (stages["idea"] ||= {} of String => String)["by"] = x }
         p.on("--idea-depth V", "stages.idea.depth") { |x| (stages["idea"] ||= {} of String => String)["depth"] = x }
         p.on("--plan-by V", "stages.plan.by") { |x| (stages["plan"] ||= {} of String => String)["by"] = x }
         p.on("--plan-depth V", "stages.plan.depth") { |x| (stages["plan"] ||= {} of String => String)["depth"] = x }
         p.on("--implementation-by V", "stages.implementation.by") { |x| (stages["implementation"] ||= {} of String => String)["by"] = x }
         p.on("--maintenance-by V", "stages.maintenance.by") { |x| (stages["maintenance"] ||= {} of String => String)["by"] = x }
+        p.on("--maintenance-activity V", "stages.maintenance.activity") { |x| (stages["maintenance"] ||= {} of String => String)["activity"] = x }
         p.on("--assessed V", "Assessment date YYYY-MM-DD (default today; 'none' to omit)") { |x| assessed = x == "none" ? nil : x }
         p.on("--force", "Overwrite an existing RIGOR.md") { force = true }
         p.unknown_args { |args| dirs = args }
       end
-      Commands::Init.run(dirs.first? || ".", rigor, vouch, stages, assessed, force, io)
+      Commands::Init.run(dirs.first? || ".", rigor, vouch, stages, assessed, force, io, vouch_why)
     when "validate"
       strict = false
       json = false

@@ -9,7 +9,7 @@ module Rigor::Commands::Init
 
   def run(dir : String, rigor : String, vouch : String,
           stages : Hash(String, Hash(String, String)), assessed : String?,
-          force : Bool, io : IO) : Int32
+          force : Bool, io : IO, vouch_why : String? = nil) : Int32
     path = File.join(dir, "RIGOR.md")
     if File.exists?(path) && !force
       io.puts "error: #{path} already exists (use --force to overwrite)"
@@ -17,9 +17,13 @@ module Rigor::Commands::Init
     end
 
     obj = {} of String => JSON::Any
-    obj["spec"] = JSON::Any.new("0.2")
+    obj["spec"] = JSON::Any.new("0.3")
     obj["rigor"] = JSON::Any.new(Rigor::Document.normalize_rigor(rigor))
-    obj["vouch"] = JSON::Any.new(vouch)
+    obj["vouch"] = if vouch_why
+                     JSON::Any.new({"claim" => JSON::Any.new(vouch), "why" => JSON::Any.new(vouch_why)})
+                   else
+                     JSON::Any.new(vouch)
+                   end
     unless stages.empty?
       st = {} of String => JSON::Any
       Vocabulary::STAGE_KEYS.each do |k|

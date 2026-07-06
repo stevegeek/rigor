@@ -1,5 +1,6 @@
 require "json"
 require "./vocabulary"
+require "./document"
 
 module Rigor
   # Composes the canonical first-person summary from a stamp. This is the
@@ -68,15 +69,22 @@ module Rigor
         s << "It was #{join_and(parts)}." unless parts.empty?
       end
 
-      if by = stages.try(&.["maintenance"]?).try(&.as_h?).try(&.["by"]?).try(&.as_s)
-        s << MAINTENANCE_SENTENCE[by]
+      if maintenance = stages.try(&.["maintenance"]?).try(&.as_h?)
+        if maintenance["activity"]?.try(&.as_s) == "dormant"
+          s << Vocabulary::DORMANT_SENTENCE
+        elsif by = maintenance["by"]?.try(&.as_s)
+          s << MAINTENANCE_SENTENCE[by]
+        end
       end
 
       if assessed = doc["assessed"]?.try(&.as_s)
         s << "This assessment is as of #{assessed}."
       end
 
-      s << Vocabulary::VOUCH_SENTENCE[doc["vouch"].as_s]
+      s << Vocabulary::VOUCH_SENTENCE[Document.vouch_claim(doc)]
+      if why = Document.vouch_why(doc)
+        s << "Why: #{why}"
+      end
       s.join(" ")
     end
 

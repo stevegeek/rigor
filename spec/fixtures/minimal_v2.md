@@ -11,7 +11,7 @@ Free text.
 ## Stamp
 
 ```yaml
-spec: "0.2"
+spec: "0.3"
 rigor: comprehended
 vouch: neutral
 ```

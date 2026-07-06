@@ -46,4 +46,18 @@ describe Rigor::Commands::Init do
     io.to_s.should contain("show your working")
     FileUtils.rm_rf(dir)
   end
+
+  it "scaffolds a vouch-why + dormant-maintenance RIGOR.md that validates and shows Why: in the summary" do
+    dir = File.tempname("init5")
+    Dir.mkdir(dir)
+    stages = {"maintenance" => {"by" => "human", "activity" => "dormant"}}
+    Rigor::Commands::Init.run(dir, "skimmed", "withheld", stages, "2026-07-05", false, IO::Memory.new,
+      "fine for scripts, never audited").should eq(0)
+    text = File.read(File.join(dir, "RIGOR.md"))
+    r = Rigor::Validator.validate(text)
+    r.valid.should be_true
+    text.should contain("Why: fine for scripts, never audited")
+    text.should contain(Rigor::Vocabulary::DORMANT_SENTENCE)
+    FileUtils.rm_rf(dir)
+  end
 end

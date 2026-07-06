@@ -29,7 +29,7 @@ describe Rigor::Commands::Validate do
     io = IO::Memory.new
     Rigor::Commands::Validate.run("spec/fixtures/minimal_v2.md", strict: false, json: true, io: io)
     parsed = JSON.parse(io.to_s)
-    parsed["spec_version"].as_s.should eq("0.2")
+    parsed["spec_version"].as_s.should eq("0.3")
   end
 
   it "reports spec_version as null when the stamp has no spec field" do

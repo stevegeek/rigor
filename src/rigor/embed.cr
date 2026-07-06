@@ -2,6 +2,7 @@ require "uri"
 require "json"
 require "./renderer"
 require "./vocabulary"
+require "./document"
 
 module Rigor
   module Embed
@@ -17,7 +18,7 @@ module Rigor
     def params_from(doc : JSON::Any) : Hash(String, String)
       p = {} of String => String
       p["rigor"] = doc["rigor"].as_s
-      p["vouch"] = doc["vouch"].as_s
+      p["vouch"] = Document.vouch_claim(doc)
       if stages = doc["stages"]?.try(&.as_h?)
         Vocabulary::STAGE_KEYS.each do |k|
           next unless st = stages[k]?.try(&.as_h?)

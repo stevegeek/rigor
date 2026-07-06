@@ -78,13 +78,13 @@ describe Rigor::Document do
       doc, err = Rigor::Document.extract(File.read("spec/fixtures/minimal_v2.md"))
       err.should be_nil
       doc.not_nil!["rigor"].as_s.should eq("comprehended")
-      doc.not_nil!["spec"].as_s.should eq("0.2")
+      doc.not_nil!["spec"].as_s.should eq("0.3")
     end
 
-    it "coerces a bare spec: 0.2 scalar to a string" do
-      text = stamp_doc("spec: 0.2\nrigor: comprehended\nvouch: neutral")
+    it "coerces a bare spec: 0.3 scalar to a string" do
+      text = stamp_doc("spec: 0.3\nrigor: comprehended\nvouch: neutral")
       doc, _ = Rigor::Document.extract(text)
-      doc.not_nil!["spec"].as_s.should eq("0.2")
+      doc.not_nil!["spec"].as_s.should eq("0.3")
     end
 
     it "uses the LAST Stamp heading's yaml block" do

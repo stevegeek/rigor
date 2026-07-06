@@ -53,4 +53,16 @@ describe Rigor::Summary do
     Rigor::Summary.drift?("# T\nbody", d).should be_false
     Rigor::Summary.replace("# T\nbody", d).should be_nil
   end
+
+  it "renders vouch why after the vouch sentence" do
+    d = doc_from("rigor: skimmed\nvouch: {claim: withheld, why: \"fine for scripts, never audited.\"}")
+    Rigor::Summary.compose(d).should end_with(
+      "I am specifically not recommending you depend on this. Why: fine for scripts, never audited.")
+  end
+
+  it "renders the dormant maintenance sentence" do
+    d = doc_from("rigor: skimmed\nvouch: neutral\nstages:\n  maintenance: {by: human, activity: dormant}")
+    Rigor::Summary.compose(d).should contain(
+      "Nothing has needed changing lately; I still use this and would respond if it broke.")
+  end
 end

@@ -35,7 +35,7 @@ module Rigor
 
     def badge(doc : JSON::Any) : String
       r = doc["rigor"].as_s
-      v = doc["vouch"].as_s
+      v = Document.vouch_claim(doc)
       left = r
       left += " · AI-reviewed" if !Vocabulary::ABOVE_LINE.includes?(r) && ai_reviewed?(doc)
       right = Vocabulary::VOUCH_LABEL[v]? || v
@@ -67,7 +67,7 @@ module Rigor
 
     def infobox(doc : JSON::Any) : String
       r = doc["rigor"].as_s
-      v = doc["vouch"].as_s
+      v = Document.vouch_claim(doc)
       width = 340
       desc = describe(doc)
       lines = [] of Tuple(String, Int32, String, String)

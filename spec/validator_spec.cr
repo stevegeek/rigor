@@ -160,5 +160,21 @@ describe Rigor::Validator do
       r = Rigor::Validator.validate(text)
       r.warnings.select { |w| w.includes?("AI alone") }.should be_empty
     end
+
+    it "accepts vouch mapping form and rejects a mapping without claim" do
+      Rigor::Validator.validate(stamp_doc("spec: \"0.3\"\nrigor: skimmed\nvouch: {claim: withheld, why: \"fine for scripts, never audited\"}")).valid.should be_true
+      Rigor::Validator.validate(stamp_doc("spec: \"0.3\"\nrigor: skimmed\nvouch: {why: \"no claim\"}")).valid.should be_false
+    end
+
+    it "accepts maintenance activity and rejects it on by: none" do
+      Rigor::Validator.validate(stamp_doc("spec: \"0.3\"\nrigor: skimmed\nvouch: neutral\nstages:\n  maintenance: {by: human, activity: dormant}")).valid.should be_true
+      r = Rigor::Validator.validate(stamp_doc("spec: \"0.3\"\nrigor: skimmed\nvouch: neutral\nstages:\n  maintenance: {by: none, activity: dormant}"))
+      r.valid.should be_false
+      r.errors.join.should contain("activity")
+    end
+
+    it "rejects spec 0.2 now that the vocabulary is 0.3" do
+      Rigor::Validator.validate(stamp_doc("spec: \"0.2\"\nrigor: skimmed\nvouch: neutral")).valid.should be_false
+    end
   end
 end

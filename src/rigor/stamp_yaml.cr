@@ -1,5 +1,6 @@
 require "json"
 require "./vocabulary"
+require "./document"
 
 module Rigor
   # Deterministic stamp emission. Hand-rolled (not YAML.dump) so key order,
@@ -9,9 +10,14 @@ module Rigor
 
     def emit(doc : JSON::Any) : String
       out = String.build do |io|
-        io << "spec: \"" << (doc["spec"]?.try(&.as_s) || "0.2") << "\"\n"
+        io << "spec: \"" << (doc["spec"]?.try(&.as_s) || "0.3") << "\"\n"
         io << "rigor: " << doc["rigor"].as_s << "\n"
-        io << "vouch: " << doc["vouch"].as_s << "\n"
+        claim = Document.vouch_claim(doc)
+        if why = Document.vouch_why(doc)
+          io << "vouch: {claim: " << claim << ", why: " << why.to_json << "}\n"
+        else
+          io << "vouch: " << claim << "\n"
+        end
         if checks = doc["checks"]?.try(&.as_h?)
           io << "checks:\n"
           Vocabulary::CHECK_KEYS.each do |k|
@@ -25,6 +31,7 @@ module Rigor
             fields = [] of String
             fields << "by: #{st["by"].as_s}" if st.has_key?("by")
             fields << "depth: #{st["depth"].as_s}" if st.has_key?("depth")
+            fields << "activity: #{st["activity"].as_s}" if st.has_key?("activity")
             io << "  " << k << ": {" << fields.join(", ") << "}\n" unless fields.empty?
           end
         end

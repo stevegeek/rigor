@@ -22,6 +22,21 @@ module Rigor
       Vocabulary::LEVELS.includes?(token) ? token : value
     end
 
+    # Vouch is a scalar or a {claim, why} mapping; downstream code reads it
+    # only through these two helpers.
+    def vouch_claim(doc : JSON::Any) : String
+      v = doc["vouch"]
+      if h = v.as_h?
+        h["claim"]?.try(&.as_s) || ""
+      else
+        v.as_s
+      end
+    end
+
+    def vouch_why(doc : JSON::Any) : String?
+      doc["vouch"].as_h?.try(&.["why"]?).try(&.as_s)
+    end
+
     # The stamp: the fenced yaml block under the LAST "## Stamp" heading.
     # Line-scanned, not regexed across the file, so pathological input cannot
     # trigger catastrophic backtracking.
@@ -109,7 +124,7 @@ module Rigor
           when "rigor"
             JSON::Any.new(normalize_rigor(yaml_scalar_to_s(v)))
           when "vouch"
-            coerce_yes_no(v)
+            coerce_vouch(v)
           when "checks"
             coerce_checks(v)
           when "spec", "assessed"
@@ -119,6 +134,19 @@ module Rigor
           end
       end
       JSON::Any.new(obj)
+    end
+
+    # Vouch is a scalar (yes/neutral/withheld) or a {claim, why} mapping. Each
+    # value inside a mapping is Norway-coerced the same as the scalar form
+    # (claim: yes parses as YAML bool true).
+    private def coerce_vouch(v : YAML::Any) : JSON::Any
+      raw = v.raw
+      if raw.is_a?(Hash)
+        h = {} of String => JSON::Any
+        v.as_h.each { |vk, vv| h[vk.as_s] = coerce_yes_no(vv) }
+        return JSON::Any.new(h)
+      end
+      coerce_yes_no(v)
     end
 
     # A mapping is Norway-coerced per key. A non-mapping (list, scalar) is

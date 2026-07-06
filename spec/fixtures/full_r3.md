@@ -3,7 +3,7 @@
 ## Stamp
 
 ```yaml
-spec: "0.2"
+spec: "0.3"
 rigor: engineered
 checks:
   comprehended: yes

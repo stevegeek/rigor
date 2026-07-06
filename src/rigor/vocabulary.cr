@@ -51,6 +51,13 @@ module Rigor
     STAGE_KEYS = %w[idea plan implementation maintenance]
     DEPTHS     = %w[one-shot considered deep]
 
+    # Whether the maintenance stage is currently active work or a dormant-but-
+    # still-owned project (distinct from `by: none`, which means no one
+    # responds at all).
+    ACTIVITY = %w[active dormant]
+
+    DORMANT_SENTENCE = "Nothing has needed changing lately; I still use this and would respond if it broke."
+
     # Short display forms for the infobox stage story.
     STAGE_LABEL = {"idea" => "Idea", "plan" => "Plan", "implementation" => "Implementation", "maintenance" => "Maintenance"}
     BY_SHORT    = {"human" => "me", "human-with-ai" => "me + AI", "ai" => "AI", "none" => "no one"}

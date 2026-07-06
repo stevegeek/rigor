@@ -78,6 +78,12 @@ module Rigor
                       "Fully automated maintenance rarely sustains this level; " \
                       "confirm this reflects review of the most recent changes."
         end
+
+        if maintenance = stages["maintenance"]?.try(&.as_h?)
+          if maintenance["by"]?.try(&.as_s) == "none" && maintenance.has_key?("activity")
+            errors << "stages.maintenance.by is 'none'; 'activity' does not apply — remove it or name who responds."
+          end
+        end
       end
 
       {errors, warnings}
@@ -100,7 +106,7 @@ module Rigor
         sem_errors << "The summary block does not match the stamp. Run `rigor fmt <file>` to regenerate it."
       end
       unless d["spec"]?
-        warnings << "The stamp does not declare a spec version. Add `spec: \"0.2\"`."
+        warnings << "The stamp does not declare a spec version. Add `spec: \"0.3\"`."
       end
       Result.new(sem_errors.empty?, sem_errors, warnings, d)
     end
