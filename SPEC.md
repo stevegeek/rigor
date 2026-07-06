@@ -1,8 +1,8 @@
-# Rigor, Vouch, Stages — spec v0.2
+# Rigor, Vouch, Stages — spec v0.3
 
 This is my personal convention for stamping my own repositories. It is not a finished standard and I am not asking anyone to adopt it as written. I am publishing it because the disclosure schemes I could find answer a question I have stopped caring about, and none of them answer the one I now care about. If parts of it are useful to you, take them. If you think it is wrong, tell me.
 
-Version 0.2 is a fairly large revision of v0.1. The short version: the level names now carry the meaning (a reader should understand the claim in five seconds, with no spec knowledge), the document is written human-first with the machine block last, the `origin` axis has grown into a `stages` axis that tells the story of the work, and the validator's job has been restated as checking *consistency, not truth*. The full changelog is at the end.
+Version 0.3 trims v0.2 rather than expanding it. The short version: the badge is gone — a badge dresses a self-report as a measurement, so it is replaced by a single README line written in my own voice; the subjectivity earlier drafts kept apologizing for is now owned outright, because every value in a stamp always was a self-report and that is the point; `vouch` can carry a reason; and the maintenance stage can say it is dormant-but-still-owned. The v0.2 foundations below are unchanged: the level names carry the meaning (a reader should understand the claim in five seconds, with no spec knowledge), the document is written human-first with the machine block last, the `stages` axis tells the story of the work, and the validator's job is checking *consistency, not truth*. The full changelog is at the end.
 
 ## The problem I am trying to solve
 
@@ -34,15 +34,15 @@ Validation has two layers, and both are about **form and consistency, not truth*
 
 **Semantic validation** checks the *calculation*. A headline level is a summary of the detail claims underneath it, and the summary may not exceed the details. If you claim `engineered`, you are claiming a security review happened; the validator makes you surface that as a check, and rejects the stamp if the surfaced check contradicts the headline. You cannot state details and a headline that disagree, intentionally or accidentally. You can't tell me it's three while showing one plus one.
 
-Not everything the validator notices stops the stamp from being valid. A structural violation, a contradicted or unsurfaced claim, or drift between the summary and the stamp (below) are **errors** — the stamp is invalid, full stop. Two other things are **warnings**: they print, but validation still passes. A stamp missing `spec:` still validates, with a warning nudging you to add it. And `stages.maintenance.by: ai` alongside `engineered` or `owned` warns rather than errors — unattended maintenance rarely sustains a high level on its own, so the validator flags it for a second look instead of assuming the worst.
+Not everything the validator notices stops the stamp from being valid. A structural violation, a contradicted or unsurfaced claim, drift between the summary and the stamp (below), or a README line that disagrees with the stamp are **errors** — the stamp is invalid, full stop. Three other things are **warnings**: they print, but validation still passes. First, a stamp missing `spec:` still validates, with a warning nudging you to add it. Second, when the headline is `engineered` or `owned` and `quality_reviewed` or `security_reviewed` was satisfied by an AI alone, the validator warns — an AI-only review is a different claim from a human one at that level, and it wants you to confirm the review supports the claim or record the human pass. Third, `stages.maintenance.by: ai` (unattended) alongside `engineered` or `owned` warns rather than errors — fully automated maintenance rarely sustains a high level on its own, so the validator flags it for a second look instead of assuming the worst.
 
-What validation explicitly does **not** do is verify that the inputs are true. You may lie about the inputs — write `security_reviewed: human` on code no human ever read — and the stamp will validate. The spec cannot check that, and does not try. Trust in the inputs is the reader's calibration of the author's name, not the tool's job.
+What validation explicitly does **not** do is verify that the inputs are true. You may lie about the inputs — write `security_reviewed: human` on code no human ever read — and the stamp will validate. And this holds for *every* value in a stamp, not only the checks: `depth: deep`, `rigor: owned`, `stages.idea.by: human` are all subjective self-reports, and `depth` in particular is kept subjective on purpose rather than dressed up as a measured quantity. The validator's whole job is to keep those self-reports mutually consistent with each other and legible; believing them is the reader's calibration of the author's name, not the tool's job.
 
 I want to state this once, plainly, without apology: *nothing* in open-source self-description is verifiable. "Security-audited" in a README is not verifiable either. What this spec adds is narrower and real — inflation of a claim *relative to your own stated details* is caught mechanically. A false stamp signed with your name still costs you more than it saves, and that is the only enforcement a self-disclosure format can honestly offer.
 
 ## Axis 1: Rigor
 
-The rigor level is the headline. In v0.2 the **name is the canonical encoding** everywhere — stamps, badges, prose, URLs — because `rigor engineered` means something to a reader who has not read this document, while `R3` does not. Tools always emit the name.
+The rigor level is the headline. The **name is the canonical encoding** everywhere — the stamp, the prose summary, the README line — because `rigor engineered` means something to a reader who has not read this document, while `R3` does not. Tools always emit the name.
 
 | Order | Name | What I am claiming (first-person, canonical) |
 |---|---|---|
@@ -90,7 +90,7 @@ The principle: below the comprehension line, terseness is fine — a low stamp c
 Here is a complete `engineered` stamp that does show its working:
 
 ```yaml
-spec: "0.2"
+spec: "0.3"
 rigor: engineered
 vouch: yes
 checks:
@@ -119,6 +119,14 @@ vouch: yes | neutral | withheld
 - **neutral** — "I make no recommendation either way about depending on it." Displayed as **no vouch**.
 - **withheld** — "I am specifically not recommending you depend on this." Displayed as **vouch withheld**.
 
+A vouch may also carry a reason. Write it as a mapping instead of a bare value:
+
+```yaml
+vouch: {claim: withheld, why: "fine for scripts; never audited for production use"}
+```
+
+`claim` is required and takes the same three values; `why` is optional free text. The summary renders it verbatim as a trailing sentence — `Why: fine for scripts; never audited for production use` — immediately after the vouch sentence, so the reason travels with the claim wherever the sentences go, in both `RIGOR.md` and the README line. The bare scalar form is unchanged, and the two-line stamp still works.
+
 This is independent of rigor. I can hold a high rigor level on code I will not vouch for, and I can vouch on the strength of experience for code I have not formally reviewed.
 
 GitHub already has a crude version of this. Archiving a project, or adding a "no longer maintained" line to the README, is a way of saying "I no longer vouch for using this." But archiving fuses three different messages: I stopped maintaining, I no longer vouch for it, and it is now frozen. The `withheld` state separates the vouching from the maintenance status. It lets me keep a project live and in use while declining to tell anyone they should trust it, which archiving cannot express.
@@ -132,7 +140,7 @@ stages:
   idea:           {by: human,         depth: deep}
   plan:           {by: human-with-ai, depth: considered}
   implementation: {by: ai}
-  maintenance:    {by: human}
+  maintenance:    {by: human, activity: active}
 ```
 
 The four stages:
@@ -147,7 +155,11 @@ Two fields, both optional within any stage:
 - **`by`** — one actor vocabulary, shared with the checks: `human | human-with-ai | ai`, plus `none` on `maintenance` only ("no one maintains this").
 - **`depth`** — `one-shot | considered | deep`. Meaningful for `idea` and `plan`. The `implementation` and `maintenance` stages take no depth — implementation's depth *is* the rigor level and its checks.
 
-Everything is optional: any subset of stages, either field within a stage. The two-line minimal stamp survives untouched.
+The `maintenance` stage takes one more optional field:
+
+- **`activity`** — `active | dormant`, on `maintenance` only. Absent means unstated, which is today's behavior. `dormant` is for a project that is finished but still owned; it composes into "Nothing has needed changing lately; I still use this and would respond if it broke." That is a deliberately different claim from `by: none` ("no one maintains this"), so the two do not combine — `activity` alongside `by: none` is a semantic error.
+
+Everything is optional: any subset of stages, any field within a stage. The two-line minimal stamp survives untouched.
 
 The stages compose, chronologically, into the plain-language summary. The sentences the tool emits:
 
@@ -155,6 +167,7 @@ The stages compose, chronologically, into the plain-language summary. The senten
 - **depth** — appended when `by` is present: "…and was taken as it first came" (`one-shot`) / "…and was thought through" (`considered`) / "…and was worked in depth, over iterations" (`deep`). When `by` is absent the depth stands alone: "The idea was worked in depth, over iterations."
 - **implementation `by`** — "The implementation was written by me." / "…written by me with an AI." / "…generated by an AI."
 - **maintenance `by`** — "A human drives changes today." / "Changes are made by an AI with a human in the loop." / "Changes are made by an AI unattended." / "No one maintains this."
+- **maintenance `activity: dormant`** — replaces the `by` sentence with "Nothing has needed changing lately; I still use this and would respond if it broke."
 
 ## The file
 
@@ -174,7 +187,7 @@ The stamp lives in a `RIGOR.md` file at the repo root. v0.2 inverts v0.1's layou
 ## Stamp
 
 ```yaml
-spec: "0.2"
+spec: "0.3"
 rigor: skimmed
 vouch: neutral
 checks:
@@ -193,7 +206,7 @@ assessed: 2026-07-03
 
 Three parts, in order:
 
-1. **The generated summary**, between `<!-- rigor:summary -->` and `<!-- /rigor:summary -->` markers. This bold paragraph is *generated from the stamp* by `rigor init` / `rigor fmt`; it is the same first-person sentences the badge and the `/r` page use. Its composition is chronological — idea → plan → implementation rigor → notable checks with their actors → maintenance → assessment → vouch last — so it reads as the story of the work.
+1. **The generated summary**, between `<!-- rigor:summary -->` and `<!-- /rigor:summary -->` markers. This bold paragraph is *generated from the stamp* by `rigor init` / `rigor fmt`; it is composed from the same first-person sentences the README line draws on. Its composition is chronological — idea → plan → implementation rigor → notable checks with their actors → maintenance → assessment → vouch last — so it reads as the story of the work.
 2. **`## Notes`** — free text, unchanged in role. Whatever a reader should know that the summary cannot carry.
 3. **`## Stamp`** — the machine-readable truth: the first fenced ` ```yaml ` block after the **last** `## Stamp` heading in the file.
 
@@ -208,12 +221,38 @@ Omitting `spec:` does not invalidate the stamp; it only draws a warning nudging 
 
 Two new optional top-level fields:
 
-- **`spec: "0.2"`** — the vocabulary version this stamp is written against.
+- **`spec: "0.3"`** — the vocabulary version this stamp is written against.
 - **`assessed: YYYY-MM`** (or `YYYY-MM-DD`) — when the stamp was last brought up to date. Composes into "This assessment is as of 2026-07-03."
 
 ### The drift rule
 
 Because the summary is derived from the stamp, the two can never be allowed to disagree. `rigor validate` re-derives the summary from the YAML and **errors on drift**: if the bold paragraph a human reads does not match the stamp a machine reads, the file is invalid. Run `rigor fmt` to regenerate. This is what makes the human-first layout safe — the prose at the top cannot quietly lie about the data at the bottom.
+
+### The README line
+
+A repository's README wants a one-line pointer to the stamp. Earlier drafts put a badge there; v0.3 removes it. A badge dresses a self-report as a measurement — a coloured sticker reading "skimmed" invites the reader to parse it the way they parse "88% coverage", which is exactly the category error this whole convention exists to undo. A sentence in the author's own voice is the honest artifact: it cannot be mistaken for a metric because it reads as what it is, a claim someone is making.
+
+`rigor embed <file>` emits that line — a blockquote of the rigor sentence and the vouch sentence (plus the vouch `why`, if there is one), linking to `RIGOR.md`:
+
+```markdown
+<!-- rigor:line -->
+> "I have run and skimmed this code, but I have not read it properly. No human has understood it line by line. I make no recommendation either way about depending on it." — [RIGOR.md](RIGOR.md)
+<!-- /rigor:line -->
+```
+
+The `<!-- rigor:line -->` … `<!-- /rigor:line -->` markers are optional, and they extend the drift rule to the README. `rigor validate <file> --readme README.md` re-derives the line and **errors** if the marked block disagrees with the stamp, exactly as it does for the summary block. An unmarked, hand-written pointer is fine and goes unchecked — the drift guarantee is opt-in, and it is what lets a README quote the stamp without risking a quiet lie.
+
+## Changelog: v0.2 → v0.3
+
+v0.3 trims rather than grows. Nothing in the vocabulary above is new; several things are gone.
+
+- **The badge is retired.** No `badge.svg`, no infobox, no colour semantics, no `rigor badge`, no `rigor serve`. A badge implied a measurement, and a self-report is not one. In its place, `rigor embed` emits a single README line in the stamp's own voice — the rigor and vouch sentences, linking to `RIGOR.md` — and the drift rule now covers it through the optional `<!-- rigor:line -->` markers.
+- **Subjectivity is owned, not apologized for.** The spec no longer implies anywhere that any value was ever objective. Every value in a stamp — `depth`, `rigor`, the stage `by`s, the checks — is a subjective self-report; the validator keeps them consistent with each other and legible, and does nothing more. `depth` stays exactly as it was; it was never a measured quantity, and it is no longer pretended to be one.
+- **Vouch can carry a reason.** `vouch` accepts a `{claim, why}` mapping; `why` renders as a trailing "Why: …" sentence after the vouch sentence. The bare scalar form is unchanged.
+- **Maintenance can be dormant.** `stages.maintenance.activity: active | dormant`; `dormant` says "finished but still owned," a distinct claim from `by: none`, and the two cannot be combined.
+- **`spec` is now `"0.3"` only.** The enum accepts a single value; there is no v0.2 compatibility mode.
+
+A JavaScript / npx port of the tool is planned, so adopters do not need a Crystal toolchain. That is an implementation change, not a change to this spec — the vocabulary and validation rules above are the contract, whatever binary enforces them.
 
 ## Changelog: v0.1 → v0.2
 
@@ -230,10 +269,11 @@ Because the summary is derived from the stamp, the two can never be allowed to d
 
 ## Open questions
 
-Things I have not settled and would discuss — several are deferred to 0.3:
+Things I have not settled and would discuss:
 
-- **Evidence links.** Optional fields pointing at CI runs, review PRs, or audit reports. Attractive, but they push toward a verifiability claim v0.2 deliberately does not make; deferred.
-- **Per-path scope.** One root stamp describes a whole repo today. A large repo may have a hand-owned core and a generated periphery; per-directory scoping is real and deferred to 0.3. The stages axis absorbs the most common split (design vs implementation) for now.
-- **Agent-authored stamps.** A contract for an agent to author or update its own stamp honestly. Deferred to 0.3.
-- Whether `vouch` should carry a reason field, or whether that belongs in the notes.
+- **Evidence links.** Optional fields pointing at CI runs, review PRs, or audit reports. Attractive, but they push toward a verifiability claim this spec deliberately does not make; still deferred.
+- **Per-path scope.** One root stamp describes a whole repo today. A large repo may have a hand-owned core and a generated periphery; per-directory scoping is real but unbuilt. The stages axis absorbs the most common split (design vs implementation) for now.
+- **Agent-authored stamps.** A contract for an agent to draft or update its own stamp honestly, the way it already drafts a commit message.
+- **Fence-aware scanning.** The stamp scanner is a line scanner by design, so pathological input cannot trigger catastrophic backtracking; teaching it to see nested code fences is deferred rather than rejected.
+- **Account-level rollup / discoverability.** A way to see one author's stamps together, without turning the convention into a ranking.
 - Whether the idea/plan boundary is worth its fuzziness. It is softer than the plan/implementation boundary; mitigated for now by every stage and field being optional.

@@ -1,7 +1,5 @@
 # Rigor, Vouch, Stages
 
-[![skimmed · AI-reviewed | no vouch — see RIGOR.md](rigor-badge.svg)](RIGOR.md)
-
 A disclosure convention for source code in the AI era. It lets a repository state three
 separate things a reader actually wants to know — how much rigor went into the code, whether
 the author vouches for depending on it, and the story of who did which stage of the work — in a
@@ -10,10 +8,16 @@ orthogonal on purpose: code can be fully AI-written and fully rigorous, lightly 
 completely unreviewed, or actively maintained and not vouched for. The full convention and the
 reasoning behind each level is in [`SPEC.md`](SPEC.md).
 
+<!-- rigor:line -->
+> _Placeholder. `rigor embed RIGOR.md` generates the real line and it gets pasted between these markers; `rigor validate RIGOR.md --readme README.md` then keeps it honest._
+<!-- /rigor:line -->
+
 ## The `rigor` CLI
 
-A command-line tool that authors, validates, renders, and serves the stamp. It is written in
-Crystal and compiles to a native binary.
+A command-line tool that authors, validates, and formats the stamp — and emits the one-line
+pointer above. It is written in Crystal and compiles to a native binary. (A JavaScript / npx
+port is planned so adopters do not need a Crystal toolchain; the spec is the contract either
+way.)
 
 ### Build
 
@@ -26,39 +30,40 @@ shards build --release      # produces ./bin/rigor
 
 **`rigor init [DIR]`** — scaffold a `RIGOR.md` (default: current directory), writing both the
 stamp and the generated plain-language summary. Refuses to overwrite an existing file without
-`--force`.
+`--force`, and refuses to write a stamp that would not validate.
 
 ```sh
 rigor init --rigor skimmed --vouch neutral \
   --idea-by human --idea-depth deep \
-  --plan-by human --plan-depth deep \
-  --implementation-by ai --maintenance-by human
+  --plan-by human-with-ai --plan-depth considered \
+  --implementation-by ai \
+  --maintenance-by human --maintenance-activity active
 ```
 
-**`rigor validate <file> [--strict] [--json]`** — validate a stamp: structural (schema
-vocabulary, required fields, no unknown keys) plus semantic (a claimed level may not exceed its
-surfaced checks, and levels above the comprehension line must show their working). Also errors if
-the generated summary has drifted from the stamp. Exit `0` valid, `1` invalid, `2` usage error.
+Flags mirror the stamp fields: `--rigor`, `--vouch`, `--vouch-why` (promotes vouch to the
+`{claim, why}` mapping), `--idea-by` / `--idea-depth`, `--plan-by` / `--plan-depth`,
+`--implementation-by`, `--maintenance-by` / `--maintenance-activity`, and `--assessed`
+(defaults to today; `none` to omit).
+
+**`rigor validate <file> [--strict] [--json] [--readme PATH]`** — validate a stamp: structural
+(schema vocabulary, required fields, no unknown keys) plus semantic (a claimed level may not
+exceed its surfaced checks, and levels above the comprehension line must show their working).
+Also errors if the generated summary has drifted from the stamp. Exit `0` valid, `1` invalid,
+`2` usage error.
 
 - Default (non-strict): surfacing only some checks is fine and silent.
 - `--strict`: also warns about checks a level implies but that were not surfaced.
 - `--json`: machine-readable `{ "valid", "errors", "warnings", "spec_version" }`.
+- `--readme PATH`: also check the `<!-- rigor:line -->` block in `PATH` and error if that
+  README line disagrees with the stamp.
 
 **`rigor fmt <file>`** — regenerate the summary block from the stamp, in place, so the
 human-facing prose can never disagree with the machine-readable YAML.
 
-**`rigor badge <file> [--infobox] [-o out.svg]`** — render an SVG badge (or the larger
-`--infobox`) to stdout or a file. `--params "rigor=skimmed&vouch=neutral"` renders from a query
-string instead of a file.
-
-**`rigor embed <file> [--base URL]`** — emit paste-ready README markdown (badge + infobox) plus
-the generated alt text. `--base` sets the badge-service origin in the generated URLs.
-
-**`rigor serve [--port 8080] [--bind 127.0.0.1] [--base URL]`** — run the badge HTTP service:
-`/badge.svg?…`, `/infobox.svg?…`, and `/r?…` (a human page rendering the full first-person
-summary). Each response is a pure function of the query string and carries `ETag` + long
-`Cache-Control`, so it sits behind a reverse proxy / CDN. Binds to loopback by default; widen
-exposure with `--bind`.
+**`rigor embed <file>`** — print the paste-ready README line: a blockquote of the rigor and
+vouch sentences (plus the vouch reason, if any), wrapped in `<!-- rigor:line -->` markers and
+linking to `RIGOR.md`. Paste it into your README and keep it honest with
+`rigor validate <file> --readme README.md`.
 
 **`rigor schema`** — print the embedded canonical JSON Schema.
 
@@ -70,9 +75,10 @@ notes in the middle, and the machine-readable stamp — the first fenced `yaml` 
 else is optional.
 
 ```yaml
-spec: "0.2"                  # vocabulary version
+spec: "0.3"                  # vocabulary version (only "0.3")
 rigor: skimmed               # unexamined | skimmed | comprehended | engineered | owned
-vouch: neutral               # yes | neutral | withheld
+vouch: {claim: withheld, why: "fine for scripts; never audited for production use"}
+                             #   or a bare value — vouch: neutral   (yes | neutral | withheld)
 checks:                      # optional; surface any subset, done-values carry the actor
   comprehended: no           #   yes | human | ai | human-with-ai | no | not-applicable
   security_reviewed: ai      #   (comprehended cannot be satisfied by ai alone)
@@ -80,8 +86,9 @@ stages:                      # optional; who did each stage, and how deliberatel
   idea:           {by: human, depth: deep}          # by: human | human-with-ai | ai
   plan:           {by: human, depth: deep}          # depth: one-shot | considered | deep
   implementation: {by: ai}                          # (idea/plan only take a depth)
-  maintenance:    {by: human}                       # maintenance by: also accepts none
-assessed: 2026-07-03         # optional; when the stamp was last brought up to date
+  maintenance:    {by: human, activity: dormant}    # activity: active | dormant (maintenance only)
+                                                     # maintenance by: also accepts none
+assessed: 2026-07-06         # optional; when the stamp was last brought up to date
 ```
 
 `rigor init` and `rigor fmt` keep the bold plain-language summary at the top of the file in sync
@@ -99,8 +106,11 @@ produces both over code that may be broken, so **polish no longer signals dilige
 The question a reader still needs answered is not "did a machine touch this" but "can I depend on
 this — did someone deliberately work to make it correct and secure, or did someone accept output
 that happened to run?" Rigor, Vouch, and Stages exist to make that answerable, and to keep it
-honest: the format is machine-validated, and the comprehension line (`skimmed` → `comprehended`)
-marks the break between code nobody has understood and code a human can account for.
+honest. The tool does not verify that the claims are true — nothing in a self-report can be
+verified — but it does keep them **consistent**: a stamp cannot claim more than the details it
+surfaces, and the prose a human reads cannot drift from the data a machine reads. And the
+comprehension line (`skimmed` → `comprehended`) marks the break between code nobody has
+understood and code a human can account for.
 
 ## Why I made this
 
@@ -122,11 +132,15 @@ discern. A few years ago, a half-baked script in a repo with no README would obv
 worth a second look. But now a similar project might seem feature complete and fully documented
 etc, but still not something I'd vouch for.
 
-In an earlier draft I tried to also *grade* how much thinking went into the design and speccing
-of the project, but grading that turned out to be unverifiable and subjective. So instead of a
-score, the `stages` axis just records who did each stage and how deliberately, and leaves it at
-that. What is left aims to be more dependable than a vibe or a polished README, so be honest
-about which parts of the work were mine, which were the model's, and how the two meshed.
+For a while I worried that the subjective parts — how deeply something was thought through,
+whether I had *really* reviewed it — did not belong in a format that calls itself
+machine-checkable, and an earlier draft tried to launder them out. That was a mistake, and I have
+put them back deliberately. Nothing here was ever objective: "security reviewed" in any README is
+a self-report too, and always was. So the convention does not pretend to *measure* anything. It
+is an honesty mechanism, not a measurement — it records who did each stage and how deliberately,
+keeps those claims consistent with each other, and leaves believing them to you. That is more
+dependable than a vibe or a polished README precisely because it stops dressing a judgement call
+up as a number.
 
 Ie the point is how much rigor went into the work.
 
