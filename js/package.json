@@ -1,9 +1,20 @@
 {
   "name": "rigor-md",
   "version": "0.3.0",
+  "description": "Rigor/Vouch/Stages disclosure tool for RIGOR.md stamps — validate, format, and embed a first-person honesty statement about how carefully code was reviewed.",
   "type": "module",
   "bin": {
     "rigor": "./bin/rigor.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "rigor.schema.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevegeek/rigor.git"
   },
   "engines": {
     "node": ">=18"

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/rigor.schema.json",
+  "title": "Rigor, Vouch, Stages disclosure",
+  "description": "Structural and vocabulary validation for the RIGOR.md stamp block (the fenced yaml under a trailing '## Stamp' heading). Semantic cross-field rules (level-to-checks consistency) are enforced separately by the semantic validator, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rigor", "vouch"],
+  "properties": {
+    "rigor": {
+      "description": "Human review/ownership level for the most recent significant changes, as a level name.",
+      "type": "string",
+      "enum": ["unexamined", "skimmed", "comprehended", "engineered", "owned"]
+    },
+    "vouch": {
+      "description": "Whether the author recommends depending on this code. A bare value, or a mapping carrying the reason.",
+      "oneOf": [
+        { "type": "string", "enum": ["yes", "neutral", "withheld"] },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claim"],
+          "properties": {
+            "claim": { "type": "string", "enum": ["yes", "neutral", "withheld"] },
+            "why": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "checks": {
+      "description": "Optional. The individual assurance checks behind the rigor level. Any subset may be present.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comprehended": { "$ref": "#/$defs/checkValue" },
+        "quality_reviewed": { "$ref": "#/$defs/checkValue" },
+        "security_reviewed": { "$ref": "#/$defs/checkValue" },
+        "tested": { "$ref": "#/$defs/checkValue" },
+        "owned": { "$ref": "#/$defs/checkValue" }
+      }
+    },
+    "stages": {
+      "description": "Optional. The story of the work: who did each stage, and how deliberately. Any subset of stages; any subset of fields within a stage.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idea": { "$ref": "#/$defs/thoughtStage" },
+        "plan": { "$ref": "#/$defs/thoughtStage" },
+        "implementation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "by": { "enum": ["human", "human-with-ai", "ai"] } }
+        },
+        "maintenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "by": { "enum": ["human", "human-with-ai", "ai", "none"] },
+            "activity": { "enum": ["active", "dormant"] }
+          }
+        }
+      }
+    },
+    "notes": {
+      "description": "Optional short free-text. The prose body below the frontmatter is the usual place for notes; this field exists for tools that prefer it inline.",
+      "type": "string"
+    },
+    "spec": {
+      "description": "The spec version this stamp is written against.",
+      "type": "string",
+      "enum": ["0.3"]
+    },
+    "assessed": {
+      "description": "When the stamp was last brought up to date (YYYY-MM or YYYY-MM-DD).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+    }
+  },
+  "$defs": {
+    "checkValue": {
+      "description": "Done-states carry the actor: yes (unstated), human, ai, human-with-ai. Plus no and not-applicable. Strings, not booleans, to avoid YAML coercion footguns.",
+      "type": "string",
+      "enum": ["yes", "human", "ai", "human-with-ai", "no", "not-applicable"]
+    },
+    "thoughtStage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "by": { "enum": ["human", "human-with-ai", "ai"] },
+        "depth": { "enum": ["one-shot", "considered", "deep"] }
+      }
+    }
+  }
+}

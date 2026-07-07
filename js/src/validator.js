@@ -9,12 +9,19 @@ import { drift } from "./summary.js";
 // Schema loading (porting contract note): Crystal embeds rigor.schema.json
 // at COMPILE time via `{{ read_file(...) }}`, so the schema is baked into
 // the binary with no runtime file dependency. JS has no equivalent compile-
-// time file inlining, so SCHEMA_JSON is read at module-load time instead,
-// from the repo-root rigor.schema.json — the single shared schema, not a
-// copy. During the port, js/ sits one level below the repo root, so the
-// path from js/src/ is two levels up. This is a SINGLE constant so that the
-// one-line change at cutover (when js/ becomes the repo root) is obvious.
-const SCHEMA_PATH = new URL("../../rigor.schema.json", import.meta.url);
+// time file inlining, so SCHEMA_JSON is read at module-load time instead.
+//
+// Packaging note (Task 5): an npm-installed package cannot reach outside
+// its own package directory (an `npm pack`'d tarball only contains the
+// "files" whitelist), so a copy of the schema lives at js/rigor.schema.json
+// — one level up from src/ — and is included in package.json's "files".
+// While the repo-root rigor.schema.json (the original, still read at
+// compile time by the Crystal binary) and this copy both exist during the
+// port, test/schema-sync.test.js asserts they are byte-identical; that
+// check itself skips cleanly once js/ becomes the repo root and the
+// repo-root copy is gone, at which point js/rigor.schema.json is simply
+// the schema, no longer a copy of anything.
+const SCHEMA_PATH = new URL("../rigor.schema.json", import.meta.url);
 
 /** Canonical schema text, read once at module load. @type {string} */
 export const SCHEMA_JSON = readFileSync(SCHEMA_PATH, "utf8");
