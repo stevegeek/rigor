@@ -34,16 +34,15 @@ function isPlainObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
 }
 
-// Crystal's `#{array}` string interpolation renders a String array via
-// Array#inspect: `["yes", "human"]` (bracketed, comma-space separated,
-// each element double-quoted). JS's default array-to-template-literal
-// coercion gives `yes,human` instead, so the error message reproduces the
-// Crystal formatting explicitly, keeping the message byte-identical.
+// The allowed-values list renders bracketed, comma-space separated, each
+// element double-quoted: `["yes", "human"]`. This exact format is part of
+// the error-message contract (pinned by the validator tests); JS's default
+// array-to-string coercion (`yes,human`) is not it.
 /**
  * @param {string[]} arr
  * @returns {string}
  */
-function crystalArrayInspect(arr) {
+function inspectValueList(arr) {
   return `[${arr.map((x) => JSON.stringify(x)).join(", ")}]`;
 }
 
@@ -102,7 +101,7 @@ export function semantic(doc, strict) {
       const got = checks[name];
       if (!acceptable.includes(got)) {
         errors.push(
-          `rigor '${rigor}' requires '${name}' to be one of ${crystalArrayInspect(acceptable)}, but it is '${got}'.`,
+          `rigor '${rigor}' requires '${name}' to be one of ${inspectValueList(acceptable)}, but it is '${got}'.`,
         );
       }
     } else if (mustSurface) {
