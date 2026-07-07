@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Port of src/main.cr (`exit Rigor::CLI.run(ARGV)`).
+// CLI entry point: runs the command and exits with its status code.
 
 import { run } from "../src/cli.js";
 

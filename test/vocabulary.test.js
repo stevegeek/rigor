@@ -1,4 +1,4 @@
-// Transcribed from spec/vocabulary_spec.cr.
+// Covers the fixed Rigor/Vouch/Stages vocabulary constants.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

@@ -1,4 +1,5 @@
-// Port of src/rigor/validator.cr.
+// Structural (schema) and semantic (vocabulary-rule) validation for a
+// parsed stamp.
 
 import { readFileSync } from "node:fs";
 import Ajv2020 from "ajv/dist/2020.js";
@@ -6,18 +7,10 @@ import { extract } from "./document.js";
 import { LEVEL_REQUIRES } from "./vocabulary.js";
 import { drift } from "./summary.js";
 
-// Schema loading (porting contract note): the Crystal predecessor embedded
-// rigor.schema.json at COMPILE time via `{{ read_file(...) }}`, baking the
-// schema into the binary with no runtime file dependency. JS has no
-// equivalent compile-time file inlining, so SCHEMA_JSON is read at
-// module-load time instead.
-//
-// Packaging note (cutover, Task 6): js/ was promoted to the repo root, so
-// rigor.schema.json now lives one level up from src/ AT the package root
-// — the single canonical copy (the earlier js/rigor.schema.json packaging
-// copy and its schema-sync test were retired at the same time, since there
-// is no longer a second copy to drift from). It is included in
-// package.json's "files" so an `npm pack`'d tarball still carries it.
+// rigor.schema.json lives at the package root — the single canonical copy
+// of the schema, read once at module load so it is the one source of truth
+// for structural validation. It is included in package.json's "files" so
+// an `npm pack`'d tarball still carries it.
 const SCHEMA_PATH = new URL("../rigor.schema.json", import.meta.url);
 
 /** Canonical schema text, read once at module load. @type {string} */
@@ -48,11 +41,10 @@ function inspectValueList(arr) {
 
 // ajv reports an `additionalProperties` violation with instancePath at the
 // OBJECT that carries the unexpected key (often "", the document root),
-// with the offending key name only in `params.additionalProperty` —
-// unlike json_schemer, which points `data_pointer` straight at the
-// offending property (e.g. "/bogus"). Appending the property name to the
-// pointer here reproduces that pointer-at-the-property behavior so
-// consuming code (and error text) can still find "/bogus" etc.
+// with the offending key name only in `params.additionalProperty`.
+// Appending the property name to the pointer here makes the error point
+// straight at the offending field (e.g. "/bogus") instead of its parent
+// container, so consuming code (and error text) can find it directly.
 /**
  * @param {import("ajv").ErrorObject} e
  * @returns {string}

@@ -1,4 +1,4 @@
-// Transcribed from spec/e2e_spec.cr.
+// Covers the CLI end to end: command dispatch, flag parsing, and exit codes.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

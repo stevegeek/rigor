@@ -1,10 +1,11 @@
-// Port of src/rigor/stamp_yaml.cr.
-//
 // Deterministic stamp emission. Hand-rolled (not a general YAML dumper) so
 // key order, flow style, and quoting are stable — fmt must be idempotent
-// byte-for-byte. Assumes `doc` already passed structural validation (as in
-// Crystal's `.as_s` calls, which raise on the wrong type); this mirrors the
-// same latent assumption flagged in the Crystal final-review notes.
+// byte-for-byte.
+//
+// Contract: emit() assumes `doc` is already structurally valid (every field
+// it reads is the type the schema requires) and does not re-check it. Its
+// one caller, src/commands/init.js, runs `structural` (and then `semantic`)
+// on the doc first and refuses to write anything if that reports an error.
 
 import { vouchClaim, vouchWhy } from "./document.js";
 import { CHECK_KEYS, STAGE_KEYS } from "./vocabulary.js";

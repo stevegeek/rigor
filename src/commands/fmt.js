@@ -1,4 +1,4 @@
-// Port of src/rigor/commands/fmt.cr.
+// Regenerates a stamp's summary block in place.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { extract } from "../document.js";

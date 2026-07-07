@@ -1,6 +1,5 @@
-// Transcribed from the StampYAML.emit assertions inside spec/commands/fmt_spec.cr
-// (the fmt-adjacent emit cases the Task 3 brief calls out — the rest of
-// fmt_spec.cr exercises Rigor::Commands::Fmt, a later task's CLI surface).
+// Covers StampYAML.emit directly (no CLI/file I/O involved). CLI-level
+// Commands::Fmt behavior is covered separately in test/fmt.test.js.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -40,11 +39,11 @@ describe("Rigor::StampYAML", () => {
     assert.equal(reparsed["notes"], originalNotes);
   });
 
-  // NEW (per Task 3 brief): idempotence proof at the summary/stamp-yaml
-  // layer — fmt's actual byte-idempotence (Rigor::Commands::Fmt.run twice)
-  // is a later task's CLI concern, but the underlying guarantee (emit's
-  // output, re-extracted and re-emitted, is byte-identical) is provable
-  // now and is exactly what makes that later idempotence possible.
+  // Idempotence proof at the emit/extract layer: fmt's byte-idempotence
+  // (running Commands::Fmt.run twice) depends on emit's output being
+  // re-extracted and re-emitted as the exact same bytes. Proving that
+  // guarantee here, independent of CLI/file I/O, is what makes fmt's own
+  // idempotence possible.
   it("is idempotent: emit(extract(stampDoc(emit(doc)))) === emit(doc)", () => {
     for (const name of ["engineered_v2.md", "full_r3.md", "minimal_v2.md", "minimal.md", "r4_partial.md"]) {
       const { doc: doc1 } = extract(fixture(name));

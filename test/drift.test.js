@@ -1,11 +1,8 @@
-// Transcribed from spec/drift_spec.cr.
-//
 // Note on the file name: this "drift" is schema-vs-vocabulary constant
 // drift (do rigor.schema.json's enums and vocabulary.js's arrays still
 // agree?) — unrelated to the summary-vs-stamp "drift" that validator.js's
 // `validate()` checks via summary.js's `drift()` (see src/validator.js and
-// src/summary.js). Nothing here depends on summary.js, so none of these
-// are skipped.
+// src/summary.js).
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

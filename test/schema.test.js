@@ -1,6 +1,4 @@
-// Transcribed from spec/commands/schema_spec.cr. Not in the Task 4 brief's
-// literal test-file list, but included per the global constraint to
-// transcribe ALL of spec/commands/*_spec.cr.
+// Covers Commands::Schema.run: printing the canonical JSON Schema.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

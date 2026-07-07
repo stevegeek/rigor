@@ -1,5 +1,7 @@
-// Port of src/rigor/vocabulary.cr — every string here is part of the
-// porting contract; copied verbatim, not retyped.
+// The Rigor/Vouch/Stages vocabulary: canonical names, first-person
+// sentences, and the check requirements each level implies. Every string
+// here is part of the spec's fixed vocabulary, so it is defined once and
+// shared by the document parser, validator, and summary composer.
 
 /** Names are the canonical encoding, and the only accepted vocabulary. */
 export const LEVELS = ["unexamined", "skimmed", "comprehended", "engineered", "owned"];

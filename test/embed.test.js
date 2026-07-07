@@ -1,4 +1,5 @@
-// Transcribed from spec/embed_spec.cr.
+// Covers the README-line emitter (src/embed.js) and its CLI wrapper
+// (src/commands/embed.js).
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -7,7 +8,9 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { extract } from "../src/document.js";
 import { emit } from "../src/embed.js";
+import { run } from "../src/commands/embed.js";
 import { line, lineBlock } from "../src/summary.js";
+import { memoryOut } from "./helpers.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,5 +29,14 @@ describe("Rigor::Embed", () => {
   it("agrees with Summary.line for a minimal stamp", () => {
     const d = docFor("minimal.md");
     assert.ok(emit(d).includes(`"${line(d)}"`));
+  });
+});
+
+describe("Rigor::Commands::Embed", () => {
+  it("returns 2 and reports a missing file, instead of throwing", () => {
+    const out = memoryOut();
+    const code = run("/nonexistent-embed-target.md", out);
+    assert.equal(code, 2);
+    assert.ok(out.toString().includes("no such file"));
   });
 });

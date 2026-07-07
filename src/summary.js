@@ -1,5 +1,3 @@
-// Port of src/rigor/summary.cr.
-//
 // Composes the canonical first-person summary from a stamp. This is the
 // single source of the human-facing sentences: RIGOR.md's bold summary and
 // the README line both come from here, so prose can never drift from the
@@ -125,8 +123,11 @@ export function compose(doc) {
     if (parts.length > 0) s.push(`It was ${joinAnd(parts)}.`);
   }
 
-  // Deliberately outside the `if (stages)` block above (mirrors summary.cr):
-  // `stages` may be null here, so guard again before indexing it.
+  // The maintenance sentence belongs after the checks sentence in the
+  // narrated order (stages, then rigor level, then checks, then
+  // maintenance, then assessed, then vouch), so it is composed here rather
+  // than inside the `if (stages)` block above; `stages` can still be null
+  // at this point, so guard again before indexing into it.
   const maintenance = stages && isPlainObject(stages["maintenance"]) ? stages["maintenance"] : null;
   if (maintenance) {
     if (maintenance["activity"] === "dormant") {

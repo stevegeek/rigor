@@ -1,29 +1,20 @@
-// Port of src/rigor/cli.cr.
+// The CLI entry point: dispatches a command name to its handler, after
+// hand-rolled flag parsing.
 //
-// Flag parsing note (porting contract deviation, deliberate): Crystal uses
-// `OptionParser`, a full-featured parser supporting short flags, bundled
-// short options, `--flag=value`/`--flag value` forms, and a
-// `gnu_optional_args` mode. Every flag this CLI actually declares is either
-// a boolean switch (`--force`, `--strict`, `--json`) or a long flag that
-// takes exactly one required value (`--rigor V`, `--readme PATH`, etc) —
-// no short flags, no optional-value flags are ever registered. `parseFlags`
-// below is a hand-rolled parser scoped to exactly that subset: it recognizes
-// `--flag value` and `--flag=value` for value flags, bare `--flag` for
-// booleans, and treats anything else as positional (mirroring
-// `OptionParser#unknown_args`).
+// Flag parsing: every flag this CLI declares is either a boolean switch
+// (`--force`, `--strict`, `--json`) or a long flag that takes exactly one
+// required value (`--rigor V`, `--readme PATH`, etc) — no short flags, no
+// optional-value flags. `parseFlags` below is scoped to exactly that
+// subset: it recognizes `--flag value` and `--flag=value` for value flags,
+// bare `--flag` for booleans, and treats anything else as positional.
 //
-// Strictness parity: Crystal's OptionParser dies (unhandled exception, exit
-// 1) on an unrecognized `--flag`, on a boolean flag written as
-// `--flag=value`, and on a value-flag with nothing following it.
-// `parseFlags` rejects all three shapes too, returning an `error` string
-// instead of silently accepting them. Deviation: message text
-// ("error: invalid option: <token>" / "error: missing value for <flag>") is
-// a deliberate, humane departure from Crystal's raw exception backtrace;
-// parity: exit code (both runtimes exit 1). Because Crystal's side of this
-// path is an unhandled-exception backtrace rather than a stable string, a
-// cross-runtime parity gate must compare exit codes only for these three
-// argv shapes, never message text — do not add these shapes to any
-// message-parity matrix.
+// Parsing is strict on purpose: an unrecognized `--flag`, a boolean flag
+// written as `--flag=value`, or a value-flag with nothing following it is
+// rejected with an `error` string (exit 1) rather than silently accepted.
+// This is a disclosure tool — silently ignoring a typo'd or malformed flag
+// could write or validate a stamp under the wrong assumption and still
+// exit 0, which is the worst failure mode here: a confident, wrong claim.
+// Failing loudly is strictly safer than guessing what the author meant.
 
 import * as Init from "./commands/init.js";
 import * as Validate from "./commands/validate.js";
@@ -31,8 +22,8 @@ import * as Embed from "./commands/embed.js";
 import * as Schema from "./commands/schema.js";
 import * as Fmt from "./commands/fmt.js";
 
-/** Mirrors the retired Rigor::VERSION (formerly src/rigor.cr) — the CLI's
- * own version string, independent of package.json's npm package version. */
+/** The CLI's own version string, reported by `--version`, independent of
+ * package.json's npm package version. */
 export const VERSION = "0.3.0";
 
 const BANNER_LINES = [
@@ -63,7 +54,8 @@ function defaultOut() {
   return { puts: stdoutPuts };
 }
 
-/** Today's date, local timezone, as YYYY-MM-DD (mirrors `Time.local.to_s("%Y-%m-%d")`).
+/** Today's date, local timezone, as YYYY-MM-DD — the day-precision format
+ * `assessed:` uses throughout the vocabulary.
  * @returns {string}
  */
 function today() {
@@ -90,9 +82,9 @@ function parseFlags(args, spec) {
     if (isFlag && Object.prototype.hasOwnProperty.call(spec, name)) {
       if (spec[name] === "boolean") {
         if (eq !== -1) {
-          // `--force=true`: Crystal's OptionParser has no notion of a
-          // value attached to a zero-arg switch and raises InvalidOption;
-          // mirror that instead of silently discarding the `=value`.
+          // `--force=true`: a boolean switch takes no value. Reject it
+          // instead of silently discarding the `=value`, so a typo like
+          // this can't be mistaken for the flag being unset.
           return { values, positional, error: `invalid option: ${arg}` };
         }
         values[name] = true;
@@ -106,8 +98,8 @@ function parseFlags(args, spec) {
         return { values, positional, error: `missing value for ${name}` };
       }
     } else if (isFlag) {
-      // Unrecognized `--flag`-shaped arg: Crystal's OptionParser raises
-      // InvalidOption for these rather than treating them as positional.
+      // Unrecognized `--flag`-shaped arg: reject it rather than treating it
+      // as positional, so a mistyped flag name is never silently ignored.
       return { values, positional, error: `invalid option: ${arg}` };
     } else {
       positional.push(arg);

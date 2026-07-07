@@ -1,4 +1,4 @@
-// Port of src/rigor/commands/schema.cr.
+// Prints the canonical JSON Schema used for structural validation.
 
 import { SCHEMA_JSON } from "../validator.js";
 

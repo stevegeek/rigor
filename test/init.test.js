@@ -1,4 +1,4 @@
-// Transcribed from spec/commands/init_spec.cr.
+// Covers Commands::Init.run: scaffolding a new RIGOR.md stamp.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

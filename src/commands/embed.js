@@ -1,11 +1,6 @@
-// Port of src/rigor/commands/embed.cr.
-//
-// Note (matches Crystal): unlike validate/fmt, this command does not check
-// File.exists? first — a missing file raises (here, propagates the node:fs
-// ENOENT exception) rather than returning a usage exit code, same as
-// Crystal's uncaught File::NotFoundError from the bare File.read call.
+// Prints the paste-ready README line for a stamp.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { validate } from "../validator.js";
 import { emit, USAGE_HINT } from "../embed.js";
 
@@ -15,6 +10,10 @@ import { emit, USAGE_HINT } from "../embed.js";
  * @returns {number}
  */
 export function run(filePath, out) {
+  if (!existsSync(filePath)) {
+    out.puts(`error: no such file: ${filePath}`);
+    return 2;
+  }
   const result = validate(readFileSync(filePath, "utf8"));
   if (!result.valid) {
     out.puts("Cannot generate embed: document is invalid.");

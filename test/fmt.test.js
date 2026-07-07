@@ -1,9 +1,6 @@
-// Transcribed from spec/commands/fmt_spec.cr's Commands::Fmt.run (CLI-level,
-// file-I/O) cases. Two other examples in that file — "emits deterministic
-// stamp yaml" and "round-trips a notes value with escaped quotes through
-// StampYAML.emit" — exercise StampYAML.emit directly (no CLI/file I/O
-// involved) and were already transcribed in test/stamp-yaml.test.js under
-// Task 3, so they are not duplicated here.
+// Covers Commands::Fmt.run's CLI-level, file-I/O behavior. Direct
+// StampYAML.emit assertions (no CLI/file I/O involved) live in
+// test/stamp-yaml.test.js instead, so they are not duplicated here.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

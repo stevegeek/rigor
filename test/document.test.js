@@ -1,7 +1,6 @@
-// Transcribed from spec/document_spec.cr, plus a new "YAML 1.2 parity"
-// block (see the note at the top of src/document.js) covering behavior
-// that the yaml package's YAML 1.2 core schema handles differently to
-// Crystal's YAML 1.1 parser.
+// Covers extracting and normalizing the Stamp block from a RIGOR.md,
+// including the YAML 1.2 core-schema coercions documented at the top of
+// src/document.js (see the "YAML 1.2 core schema" describe block below).
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -141,12 +140,12 @@ describe("Rigor::Document", () => {
     });
   });
 
-  // NEW: not in document_spec.cr. Crystal's YAML parser is 1.1 (bare
-  // yes/no are booleans, bare day-precision dates are Time); the yaml
-  // package's default core schema is YAML 1.2 (yes/no are strings already,
-  // no timestamp type). These pin the JS-side behavior at each point where
-  // that divergence could silently change an observable result.
-  describe("YAML 1.2 parity (yaml package core schema vs Crystal's YAML 1.1)", () => {
+  // The yaml package's default core schema is YAML 1.2: bare yes/no arrive
+  // as strings already, there is no timestamp type, and only true/false
+  // parse as real booleans. These pin the JS-side behavior at each point
+  // where an author's unquoted scalar could otherwise silently arrive as
+  // the wrong type.
+  describe("YAML 1.2 core schema coercions", () => {
     it("unquoted assessed: 2026-07-15 stays the string \"2026-07-15\" (no 1.1 Time type)", () => {
       const text = stampDoc("rigor: comprehended\nvouch: neutral\nassessed: 2026-07-15");
       const { doc, error } = extract(text);

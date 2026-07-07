@@ -1,4 +1,4 @@
-// Transcribed from spec/validator_spec.cr.
+// Covers structural (schema) and semantic (vocabulary-rule) validation.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";

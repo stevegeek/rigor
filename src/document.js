@@ -1,14 +1,12 @@
-// Port of src/rigor/document.cr.
+// Extracts and normalizes the Stamp block from a RIGOR.md.
 //
-// YAML semantics note (porting contract deviation, deliberate): Crystal's
-// `YAML` module parses YAML 1.1, where bare `yes`/`no`/`on`/`off` are
-// booleans (the "Norway problem") and day-precision dates become `Time`.
-// The `yaml` npm package's default core schema is YAML 1.2: `yes`/`no`
-// arrive as plain strings already, and there is no timestamp type (a bare
-// `2026-07-15` arrives as a string too). Only `true`/`false` arrive as JS
-// booleans. `coerceYesNo` below still normalizes booleans back to
-// "yes"/"no" so a stamp that spells out `comprehended: true` behaves the
-// same as Crystal's `comprehended: yes`.
+// YAML semantics note: stamps are parsed with the `yaml` package's default
+// core schema (YAML 1.2). Under that schema, bare `yes`/`no` already arrive
+// as plain strings — exactly the vocabulary's own tokens — and there is no
+// timestamp type, so a bare `2026-07-15` arrives as a string too. Only
+// `true`/`false` arrive as real JS booleans. An author plausibly writes
+// `comprehended: true` meaning the same thing as `comprehended: yes`, so
+// `coerceYesNo` below maps booleans back onto their vocabulary equivalents.
 
 import { parseDocument, isAlias, visit } from "yaml";
 import { LEVELS } from "./vocabulary.js";
@@ -166,7 +164,7 @@ function parseStamp(fm) {
 }
 
 // Convert the parsed YAML mapping into a normalized plain-object document:
-// rigor -> canonical code; vouch and checks -> Norway-coerced strings.
+// rigor -> canonical code; vouch and checks -> yes/no-coerced strings.
 /**
  * @param {Object<string, any>} raw
  * @returns {Object<string, any>}
@@ -187,6 +185,11 @@ function coerceTop(raw) {
         break;
       case "spec":
       case "assessed":
+        // Both must end up as strings. An unquoted spec value like `0.3`
+        // parses as a JS number under the YAML 1.2 core schema (dates parse
+        // as strings already); yamlScalarToString reprints any non-string
+        // scalar as its literal text so these two fields stay strings
+        // regardless of how the author quoted them.
         obj[key] = yamlScalarToString(v);
         break;
       default:
@@ -197,8 +200,9 @@ function coerceTop(raw) {
 }
 
 // Vouch is a scalar (yes/neutral/withheld) or a {claim, why} mapping. Each
-// value inside a mapping is Norway-coerced the same as the scalar form
-// (claim: yes parses as YAML bool true under Crystal's YAML 1.1).
+// value inside a mapping gets the same boolean coercion as the scalar form,
+// since `claim` carries the same yes-shaped vocabulary value (an author
+// writing `claim: true` means `claim: yes`).
 /**
  * @param {any} v
  * @returns {any}
@@ -232,11 +236,11 @@ function coerceChecks(v) {
   return v;
 }
 
-// Crystal's YAML 1.1 parser turns bare yes/no into Bool (Norway problem).
-// Authors write `comprehended: yes`, so map booleans back to the intended
-// strings. A non-boolean scalar (e.g. "not-applicable") is returned
-// unchanged. Under the yaml package's YAML 1.2 core schema, `yes`/`no`
-// already arrive as strings; this only fires for literal `true`/`false`.
+// Authors write `comprehended: yes`, and the vocabulary wants that string
+// back; under the yaml package's YAML 1.2 core schema, `yes`/`no` already
+// arrive that way, so this only fires for a literal `true`/`false` scalar,
+// mapping it onto its vocabulary equivalent. A non-boolean scalar (e.g.
+// "not-applicable") is returned unchanged.
 /**
  * @param {any} v
  * @returns {any}

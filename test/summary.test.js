@@ -1,10 +1,7 @@
-// Transcribed from spec/summary_spec.cr, plus a NEW critical parity block
-// (per the Task 3 brief) that runs every fixture in test/fixtures/ through
-// extract() + drift()/lineDrift() and asserts zero drift wherever markers
-// are present. The fixtures carry Crystal-baked summary prose (written by
-// the Crystal binary, not by this port), so a passing parity block proves
-// summary.js's sentence composition is byte-identical to summary.cr's —
-// not merely "looks similar in a few hand-picked JS-side examples.
+// Covers summary.js's sentence composition, plus a golden-fixtures block
+// (see the describe block near the bottom of this file) that runs every
+// fixture in test/fixtures/ through extract() + drift()/lineDrift() and
+// asserts zero drift wherever markers are present.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -115,8 +112,6 @@ describe("Rigor::Summary", () => {
     );
   });
 
-  // Moved from spec/renderer_spec.cr's ".describe" tests when Renderer.describe
-  // (a thin wrapper around Summary.compose) was deleted with the badge cascade.
   it("states the author's claimed level as a first-person sentence", () => {
     assert.ok(
       compose(docFor("full_r3.md")).includes(
@@ -163,13 +158,12 @@ describe("Rigor::Summary", () => {
   });
 });
 
-// NEW (per Task 3 brief): the critical parity step. These fixtures were
-// written and stamped by the CRYSTAL binary (Task 1 copied them verbatim
-// from spec/fixtures/), so a zero-drift result here is direct evidence
-// that summary.js's sentence composition is byte-identical to summary.cr's
-// for every documented combination the fixtures exercise — not just the
-// hand-picked examples above.
-describe("fixture-proven sentence parity (Crystal-baked summaries)", () => {
+// GOLDEN FIXTURES: every file in test/fixtures/ carries a canonical
+// generated summary (and, where present, README line) alongside its stamp.
+// Drift between the two must stay false, or a stamped fixture's sentence
+// output could change without anyone noticing — this loop is the guard
+// that catches it.
+describe("golden-fixture sentence checks (zero drift against canonical prose)", () => {
   const names = readdirSync(FIXTURES_DIR).filter((n) => n.endsWith(".md"));
   assert.ok(names.length > 0, "expected at least one fixture");
 
@@ -180,10 +174,10 @@ describe("fixture-proven sentence parity (Crystal-baked summaries)", () => {
       assert.equal(error, null, `fixture ${name} failed to extract: ${error}`);
 
       if (text.includes(MARKER_START)) {
-        assert.equal(drift(text, doc), false, `${name}: summary block drifted from the Crystal-baked prose`);
+        assert.equal(drift(text, doc), false, `${name}: summary block drifted from the fixture's canonical prose`);
       }
       if (text.includes(LINE_MARKER_START)) {
-        assert.equal(lineDrift(text, doc), false, `${name}: README line drifted from the Crystal-baked prose`);
+        assert.equal(lineDrift(text, doc), false, `${name}: README line drifted from the fixture's canonical prose`);
       }
     });
   }

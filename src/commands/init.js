@@ -1,4 +1,4 @@
-// Port of src/rigor/commands/init.cr.
+// Scaffolds a new RIGOR.md stamp.
 
 import { existsSync, writeFileSync } from "node:fs";
 import path from "node:path";

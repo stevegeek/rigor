@@ -1,4 +1,5 @@
-// Port of src/rigor/commands/validate.cr.
+// Validates a stamp: structural + semantic checks, plus the optional
+// --readme drift check.
 
 import { existsSync, readFileSync } from "node:fs";
 import { validate, structural } from "../validator.js";

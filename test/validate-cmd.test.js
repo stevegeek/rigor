@@ -1,4 +1,5 @@
-// Transcribed from spec/commands/validate_spec.cr.
+// Covers Commands::Validate.run: exit codes, --json output, and --readme
+// drift checking.
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
