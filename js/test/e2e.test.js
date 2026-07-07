@@ -57,4 +57,24 @@ describe("end to end via CLI.run", () => {
     run(["validate"], out2);
     assert.ok(out2.toString().includes("--readme"));
   });
+
+  it("fails loudly (exit 1) on an unrecognized --flag instead of silently ignoring it", () => {
+    const out = memoryOut();
+    assert.equal(run(["validate", fixturePath("full_r3.md"), "--bogus-flag"], out), 1);
+    assert.ok(out.toString().includes("invalid option: --bogus-flag"));
+  });
+
+  it("fails loudly (exit 1) on a boolean flag written as --flag=value", () => {
+    const dir = tempDir("force-eq");
+    const out = memoryOut();
+    assert.equal(run(["init", dir, "--force=true"], out), 1);
+    assert.ok(out.toString().includes("invalid option"));
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("fails loudly (exit 1) on a value-flag with no following value", () => {
+    const out = memoryOut();
+    assert.equal(run(["validate", fixturePath("full_r3.md"), "--readme"], out), 1);
+    assert.ok(out.toString().includes("missing value for --readme"));
+  });
 });

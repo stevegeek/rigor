@@ -10,9 +10,20 @@
 // below is a hand-rolled parser scoped to exactly that subset: it recognizes
 // `--flag value` and `--flag=value` for value flags, bare `--flag` for
 // booleans, and treats anything else as positional (mirroring
-// `OptionParser#unknown_args`). It does not replicate Crystal's behavior for
-// unrecognized `--flag`-shaped arguments (which raises `InvalidOption` and
-// crashes the process) since no spec in either suite exercises that path.
+// `OptionParser#unknown_args`).
+//
+// Strictness parity: Crystal's OptionParser dies (unhandled exception, exit
+// 1) on an unrecognized `--flag`, on a boolean flag written as
+// `--flag=value`, and on a value-flag with nothing following it.
+// `parseFlags` rejects all three shapes too, returning an `error` string
+// instead of silently accepting them. Deviation: message text
+// ("error: invalid option: <token>" / "error: missing value for <flag>") is
+// a deliberate, humane departure from Crystal's raw exception backtrace;
+// parity: exit code (both runtimes exit 1). Because Crystal's side of this
+// path is an unhandled-exception backtrace rather than a stable string, a
+// cross-runtime parity gate must compare exit codes only for these three
+// argv shapes, never message text — do not add these shapes to any
+// message-parity matrix.
 
 import * as Init from "./commands/init.js";
 import * as Validate from "./commands/validate.js";
@@ -66,29 +77,54 @@ function today() {
 /**
  * @param {string[]} args
  * @param {Object<string, "value"|"boolean">} spec flag name (with leading --) -> kind
- * @returns {{values: Object<string, string|boolean>, positional: string[]}}
+ * @returns {{values: Object<string, string|boolean>, positional: string[], error: string|null}}
  */
 function parseFlags(args, spec) {
   const values = {};
   const positional = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    const eq = arg.startsWith("--") ? arg.indexOf("=") : -1;
+    const isFlag = arg.startsWith("--");
+    const eq = isFlag ? arg.indexOf("=") : -1;
     const name = eq === -1 ? arg : arg.slice(0, eq);
-    if (Object.prototype.hasOwnProperty.call(spec, name)) {
+    if (isFlag && Object.prototype.hasOwnProperty.call(spec, name)) {
       if (spec[name] === "boolean") {
+        if (eq !== -1) {
+          // `--force=true`: Crystal's OptionParser has no notion of a
+          // value attached to a zero-arg switch and raises InvalidOption;
+          // mirror that instead of silently discarding the `=value`.
+          return { values, positional, error: `invalid option: ${arg}` };
+        }
         values[name] = true;
       } else if (eq !== -1) {
         values[name] = arg.slice(eq + 1);
-      } else {
-        values[name] = args[i + 1] ?? "";
+      } else if (i + 1 < args.length) {
+        values[name] = args[i + 1];
         i += 1;
+      } else {
+        // `--readme` at argv end: no following value to consume.
+        return { values, positional, error: `missing value for ${name}` };
       }
+    } else if (isFlag) {
+      // Unrecognized `--flag`-shaped arg: Crystal's OptionParser raises
+      // InvalidOption for these rather than treating them as positional.
+      return { values, positional, error: `invalid option: ${arg}` };
     } else {
       positional.push(arg);
     }
   }
-  return { values, positional };
+  return { values, positional, error: null };
+}
+
+/**
+ * @param {{error: string|null}} parsed
+ * @param {{puts: (str?: string) => void}} out
+ * @returns {boolean} true if `parsed.error` was set (and reported); caller should return exit code 1
+ */
+function reportFlagError(parsed, out) {
+  if (parsed.error === null) return false;
+  out.puts(`error: ${parsed.error}`);
+  return true;
 }
 
 /**
@@ -106,7 +142,7 @@ export function run(argv, out = defaultOut()) {
 
   switch (command) {
     case "init": {
-      const { values, positional } = parseFlags(rest, {
+      const parsed = parseFlags(rest, {
         "--rigor": "value",
         "--vouch": "value",
         "--vouch-why": "value",
@@ -120,6 +156,8 @@ export function run(argv, out = defaultOut()) {
         "--assessed": "value",
         "--force": "boolean",
       });
+      if (reportFlagError(parsed, out)) return 1;
+      const { values, positional } = parsed;
       const rigor = values["--rigor"] ?? "comprehended";
       const vouch = values["--vouch"] ?? "neutral";
       const vouchWhy = values["--vouch-why"] ?? null;
@@ -149,11 +187,13 @@ export function run(argv, out = defaultOut()) {
       return Init.run(positional[0] ?? ".", rigor, vouch, stages, assessed, force, out, vouchWhy);
     }
     case "validate": {
-      const { values, positional } = parseFlags(rest, {
+      const parsed = parseFlags(rest, {
         "--strict": "boolean",
         "--json": "boolean",
         "--readme": "value",
       });
+      if (reportFlagError(parsed, out)) return 1;
+      const { values, positional } = parsed;
       if (positional.length === 0) {
         out.puts("usage: rigor validate <file> [--strict] [--json] [--readme PATH]");
         return 2;
@@ -167,7 +207,9 @@ export function run(argv, out = defaultOut()) {
       );
     }
     case "embed": {
-      const { positional } = parseFlags(rest, {});
+      const parsed = parseFlags(rest, {});
+      if (reportFlagError(parsed, out)) return 1;
+      const { positional } = parsed;
       if (positional.length === 0) {
         out.puts("usage: rigor embed <file>");
         return 2;
@@ -177,7 +219,9 @@ export function run(argv, out = defaultOut()) {
     case "schema":
       return Schema.run(out);
     case "fmt": {
-      const { positional } = parseFlags(rest, {});
+      const parsed = parseFlags(rest, {});
+      if (reportFlagError(parsed, out)) return 1;
+      const { positional } = parsed;
       if (positional.length === 0) {
         out.puts("usage: rigor fmt <file>");
         return 2;
