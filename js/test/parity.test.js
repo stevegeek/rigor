@@ -343,6 +343,11 @@ describe("byte-parity gate against the Crystal binary (./bin/rigor)", () => {
             crJson.errors,
             diffBlock(`${stamp.name} validate: errors mismatch`, crValidate, jsValidate),
           );
+          assert.equal(
+            jsValidate.stdout,
+            crValidate.stdout,
+            diffBlock(`${stamp.name} validate: raw --json stdout mismatch (non-structural case)`, crValidate, jsValidate),
+          );
         }
 
         // embed -----------------------------------------------------------
