@@ -3,6 +3,9 @@
   "version": "0.3.0",
   "description": "Rigor/Vouch/Stages disclosure tool for RIGOR.md stamps — validate, format, and embed a first-person honesty statement about how carefully code was reviewed.",
   "type": "module",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
   "bin": {
     "rigor": "./bin/rigor.js"
   },

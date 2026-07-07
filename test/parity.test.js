@@ -3,10 +3,13 @@
 // repo root) and the JS port (bin/rigor.js) for `validate --strict --json`,
 // `embed`, and `fmt`, and the outputs are asserted identical.
 //
-// Skip contract: when ./bin/rigor is absent (the expected steady state once
-// js/ becomes the repo root and the Crystal source is retired), every test
-// in this file reports as SKIPPED, not failed — the suite must survive the
-// post-cutover world. See the per-`it` `{ skip: SKIP_REASON }` option below.
+// Skip contract: this gate ran green (39 stamps, zero mismatches) against
+// the Crystal binary immediately before the Task 6 cutover deleted
+// src/, spec/, and bin/rigor. Now that ./bin/rigor is permanently absent,
+// every test in this file reports as SKIPPED, not failed — the suite
+// survives the post-cutover world, kept as a record of what was checked
+// rather than something that can run again. See the per-`it`
+// `{ skip: SKIP_REASON }` option below.
 //
 // Known, accepted deviation (carried forward from the Task 4 report's "Fix:
 // strict flag parsing" note): ajv (JS) and json_schemer (Crystal) render
@@ -43,10 +46,9 @@ import { LEVELS, VOUCH_VALUES, ACTORS, DEPTHS, CHECK_DONE } from "../src/vocabul
 const execFileAsync = promisify(execFile);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Resolved relative to the repo root, per the brief — today js/ sits one
-// level below it; at cutover (js/ becomes the repo root) bin/rigor simply
-// stops existing and every test below reports skipped.
-const REPO_ROOT = path.resolve(__dirname, "..", "..");
+// test/ sits directly under the repo root post-cutover (it was js/test/,
+// two levels down, before Task 6 promoted js/ to the repo root).
+const REPO_ROOT = path.resolve(__dirname, "..");
 const CRYSTAL_BIN = path.join(REPO_ROOT, "bin", "rigor");
 const JS_BIN = path.resolve(__dirname, "..", "bin", "rigor.js");
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
@@ -54,7 +56,7 @@ const FIXTURES_DIR = path.join(__dirname, "fixtures");
 const HAVE_CRYSTAL = existsSync(CRYSTAL_BIN);
 const SKIP_REASON = HAVE_CRYSTAL
   ? false
-  : `Crystal binary not found at ${CRYSTAL_BIN} — skipping byte-parity gate (expected once js/ becomes the repo root)`;
+  : `Crystal binary not found at ${CRYSTAL_BIN} — retired at the Task 6 cutover; this gate now permanently reports skipped`;
 
 // --- stamp construction -----------------------------------------------
 

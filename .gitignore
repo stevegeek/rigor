@@ -1,6 +1,3 @@
-/bin/
-/lib/
-/.shards/
-*.dwarf
+node_modules/
 /docs/
 /.idea/

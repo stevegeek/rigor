@@ -6,21 +6,18 @@ import { extract } from "./document.js";
 import { LEVEL_REQUIRES } from "./vocabulary.js";
 import { drift } from "./summary.js";
 
-// Schema loading (porting contract note): Crystal embeds rigor.schema.json
-// at COMPILE time via `{{ read_file(...) }}`, so the schema is baked into
-// the binary with no runtime file dependency. JS has no equivalent compile-
-// time file inlining, so SCHEMA_JSON is read at module-load time instead.
+// Schema loading (porting contract note): the Crystal predecessor embedded
+// rigor.schema.json at COMPILE time via `{{ read_file(...) }}`, baking the
+// schema into the binary with no runtime file dependency. JS has no
+// equivalent compile-time file inlining, so SCHEMA_JSON is read at
+// module-load time instead.
 //
-// Packaging note (Task 5): an npm-installed package cannot reach outside
-// its own package directory (an `npm pack`'d tarball only contains the
-// "files" whitelist), so a copy of the schema lives at js/rigor.schema.json
-// — one level up from src/ — and is included in package.json's "files".
-// While the repo-root rigor.schema.json (the original, still read at
-// compile time by the Crystal binary) and this copy both exist during the
-// port, test/schema-sync.test.js asserts they are byte-identical; that
-// check itself skips cleanly once js/ becomes the repo root and the
-// repo-root copy is gone, at which point js/rigor.schema.json is simply
-// the schema, no longer a copy of anything.
+// Packaging note (cutover, Task 6): js/ was promoted to the repo root, so
+// rigor.schema.json now lives one level up from src/ AT the package root
+// — the single canonical copy (the earlier js/rigor.schema.json packaging
+// copy and its schema-sync test were retired at the same time, since there
+// is no longer a second copy to drift from). It is included in
+// package.json's "files" so an `npm pack`'d tarball still carries it.
 const SCHEMA_PATH = new URL("../rigor.schema.json", import.meta.url);
 
 /** Canonical schema text, read once at module load. @type {string} */

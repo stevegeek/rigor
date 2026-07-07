@@ -31,8 +31,8 @@ import * as Embed from "./commands/embed.js";
 import * as Schema from "./commands/schema.js";
 import * as Fmt from "./commands/fmt.js";
 
-/** Mirrors Rigor::VERSION (src/rigor.cr) — the CLI's own version string,
- * independent of the js/package.json npm package version. */
+/** Mirrors the retired Rigor::VERSION (formerly src/rigor.cr) — the CLI's
+ * own version string, independent of package.json's npm package version. */
 export const VERSION = "0.2.0";
 
 const BANNER_LINES = [

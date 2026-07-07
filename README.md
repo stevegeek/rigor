@@ -15,15 +15,28 @@ reasoning behind each level is in [`SPEC.md`](SPEC.md).
 ## The `rigor` CLI
 
 A command-line tool that authors, validates, and formats the stamp — and emits the one-line
-pointer above. It is written in Crystal and compiles to a native binary. (A JavaScript / npx
-port is planned so adopters do not need a Crystal toolchain; the spec is the contract either
-way.)
+pointer above. It is plain JavaScript (Node.js >= 18), published as
+[`rigor-md`](https://www.npmjs.com/package/rigor-md) — no build step, no toolchain, npx-first.
 
-### Build
+### Install
+
+No install required — run it with `npx`:
 
 ```sh
-shards install
-shards build --release      # produces ./bin/rigor
+npx rigor-md validate RIGOR.md --strict --readme README.md
+```
+
+Or install it globally:
+
+```sh
+npm install -g rigor-md
+```
+
+Or wire it into CI as a dev dependency:
+
+```sh
+npm install --save-dev rigor-md
+npx rigor validate RIGOR.md --strict --readme README.md
 ```
 
 ### Commands
@@ -145,5 +158,5 @@ But why would you consider using my projects unless some trust existed.
 ## Development
 
 ```sh
-crystal spec        # run the test suite
+npm install && npm test
 ```
