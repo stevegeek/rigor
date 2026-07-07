@@ -33,7 +33,7 @@ import * as Fmt from "./commands/fmt.js";
 
 /** Mirrors the retired Rigor::VERSION (formerly src/rigor.cr) — the CLI's
  * own version string, independent of package.json's npm package version. */
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 const BANNER_LINES = [
   "rigor - Rigor/Vouch/Stages disclosure tool",

@@ -252,7 +252,7 @@ v0.3 trims rather than grows. Nothing in the vocabulary above is new; several th
 - **Maintenance can be dormant.** `stages.maintenance.activity: active | dormant`; `dormant` says "finished but still owned," a distinct claim from `by: none`, and the two cannot be combined.
 - **`spec` is now `"0.3"` only.** The enum accepts a single value; there is no v0.2 compatibility mode.
 
-A JavaScript / npx port of the tool is planned, so adopters do not need a Crystal toolchain. That is an implementation change, not a change to this spec — the vocabulary and validation rules above are the contract, whatever binary enforces them.
+The tool is implemented in plain JavaScript (npm package `rigor-md`, run via npx), which replaced the original Crystal implementation after a byte-parity gate. That was an implementation change, not a change to this spec — the vocabulary and validation rules above are the contract, whatever binary enforces them.
 
 ## Changelog: v0.1 → v0.2
 
