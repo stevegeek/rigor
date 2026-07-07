@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import Ajv2020 from "ajv/dist/2020.js";
 import { extract } from "./document.js";
 import { LEVEL_REQUIRES } from "./vocabulary.js";
+import { drift } from "./summary.js";
 
 // Schema loading (porting contract note): Crystal embeds rigor.schema.json
 // at COMPILE time via `{{ read_file(...) }}`, so the schema is baked into
@@ -20,21 +21,6 @@ export const SCHEMA_JSON = readFileSync(SCHEMA_PATH, "utf8");
 
 const ajv = new Ajv2020({ allErrors: true, strictSchema: false });
 const validateSchema = ajv.compile(JSON.parse(SCHEMA_JSON));
-
-// TODO(Task 3): summary.js does not exist yet. This lazy, load-once guard
-// lets validator.js (and its drift check below) land before it does: the
-// dynamic import is attempted exactly once, here, at module load, via
-// top-level await (ESM, Node 18+). If summary.js is absent the import
-// rejects, the catch swallows it, and `summaryModule` stays null, so
-// `validate()` below skips the drift check silently. Task 3 adds
-// summary.js and removes this guard, making the import (and the drift
-// check) unconditional.
-let summaryModule = null;
-try {
-  summaryModule = await import("./summary.js");
-} catch {
-  summaryModule = null;
-}
 
 /**
  * @param {any} v
@@ -177,10 +163,7 @@ export function validate(text, { strict = false } = {}) {
 
   const { errors, warnings } = semantic(doc, strict);
 
-  // TODO(Task 3): remove this guard once summary.js exists — see the
-  // module-load import above. Until then, an absent summary.js means no
-  // drift check runs at all (silently skipped), rather than raising.
-  if (summaryModule && summaryModule.drift(text, doc)) {
+  if (drift(text, doc)) {
     errors.push("The summary block does not match the stamp. Run `rigor fmt <file>` to regenerate it.");
   }
 

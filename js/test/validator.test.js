@@ -158,22 +158,12 @@ describe("Rigor::Validator", () => {
       assert.equal(validate(stampDoc("rigor: skimmed\nvouch: neutral")).valid, true);
     });
 
-    // Skipped: drift detection needs Summary.drift, which lives in
-    // summary.js — not created until Task 3. validator.js's lazy
-    // module-load guard (see src/validator.js) silently no-ops the drift
-    // check while summary.js is absent, so this document currently
-    // validates (wrongly, but expectedly for this task) as true. Task 3
-    // removes the guard and un-skips this test.
-    it(
-      "errors when the summary block does not match the stamp",
-      { skip: "summary.js lands in Task 3" },
-      () => {
-        const text = fixture("minimal_v2.md").replace("I have read and understood", "I promise I read");
-        const r = validate(text);
-        assert.equal(r.valid, false);
-        assert.ok(r.errors.join("").includes("summary"));
-      },
-    );
+    it("errors when the summary block does not match the stamp", () => {
+      const text = fixture("minimal_v2.md").replace("I have read and understood", "I promise I read");
+      const r = validate(text);
+      assert.equal(r.valid, false);
+      assert.ok(r.errors.join("").includes("summary"));
+    });
 
     it("accepts a matching summary block", () => {
       assert.equal(validate(fixture("minimal_v2.md")).valid, true);
