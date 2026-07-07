@@ -145,12 +145,12 @@ function parseStamp(fm) {
   // "billion laughs" expansion that detonates during parse. Reject them.
   const parsed = parseDocument(fm, { uniqueKeys: true, prettyErrors: false });
 
-  if (containsAlias(parsed)) {
-    return { doc: null, error: "Stamp uses YAML anchors/aliases, which are not allowed." };
-  }
-
   if (parsed.errors.length > 0) {
     return { doc: null, error: `Stamp is not valid YAML: ${parsed.errors[0].message}` };
+  }
+
+  if (containsAlias(parsed)) {
+    return { doc: null, error: "Stamp uses YAML anchors/aliases, which are not allowed." };
   }
 
   // No aliases were found anywhere in the tree, so materializing it now

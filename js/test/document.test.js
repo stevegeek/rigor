@@ -63,6 +63,13 @@ describe("Rigor::Document", () => {
       assert.ok(error.includes("anchors/aliases"));
     });
 
+    it("reports malformed YAML error before alias error (malformed YAML wins)", () => {
+      const text = stampDoc("rigor: : :\na: &a [x]\nb: [*a]");
+      const { doc, error } = extract(text);
+      assert.equal(doc, null);
+      assert.ok(error.startsWith("Stamp is not valid YAML:"));
+    });
+
     it("rejects an oversized stamp", () => {
       const big = stampDoc("rigor: comprehended\nvouch: neutral\n" + "# pad\n".repeat(20000));
       const { doc, error } = extract(big);
